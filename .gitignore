@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tauri / Desktop
+packages/desktop/src-tauri/target/
+packages/desktop/src-tauri/gen/
+*.exe
+*.dmg
+*.app
+*.msi
+
+# SQLite database (local data)
+.goalify/
+*.db
+*.db-journal
+
+# pnpm
+.pnpm-store/
+
+# Turborepo
+.turbo/
+
+# Build artifacts
+*.egg-info/
+dist/
+out/
+
+# AI tools
+.gemini/

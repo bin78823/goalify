@@ -1,0 +1,124 @@
+{
+  "app": {
+    "name": "Goalify",
+    "description": "Gantt Task Manager"
+  },
+  "nav": {
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "tab": {
+    "home": "Projects",
+    "closeTab": "Close Tab",
+    "newTab": "New Tab"
+  },
+  "project": {
+    "title": "Projects",
+    "create": "New Project",
+    "edit": "Edit Project",
+    "editDescription": "Update your project details below.",
+    "delete": "Delete Project",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone and all tasks will be removed.",
+    "name": "Project Name",
+    "description": "Description",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "noProjects": "No projects yet",
+    "createFirst": "Create your first project to get started",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    }
+  },
+  "task": {
+    "title": "Tasks",
+    "create": "New Task",
+    "edit": "Edit Task",
+    "delete": "Delete Task",
+    "name": "Task Name",
+    "description": "Description",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "progress": "Progress",
+    "dependencies": "Dependencies",
+    "milestone": "Milestone",
+    "color": "Color",
+    "noTasks": "No tasks yet",
+    "duration": "days"
+  },
+  "gantt": {
+    "today": "Today",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "viewDay": "Day",
+    "viewWeek": "Week",
+    "viewMonth": "Month",
+    "week": "Week",
+    "export": "Export",
+    "exportImage": "Export Image",
+    "exportExcel": "Export Excel",
+    "exportImageSuccess": "Gantt image exported successfully",
+    "exportImageError": "Failed to export image",
+    "exportExcelSuccess": "Excel exported successfully",
+    "exportExcelError": "Failed to export Excel",
+    "refreshRange": "Refresh range"
+  },
+  "date": {
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekdaysFull": [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ],
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "monthsFull": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ]
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "close": "Close"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}

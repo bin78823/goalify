@@ -1,0 +1,31 @@
+{
+  "name": "goalify",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @goalify/web dev",
+    "dev:desktop": "concurrently -k \"pnpm dev\" \"pnpm --filter @goalify/desktop tauri dev\"",
+    "dev:web": "pnpm --filter @goalify/web dev",
+    "dev:tauri": "pnpm --filter @goalify/desktop tauri dev",
+    "build": "pnpm -r build",
+    "build:web": "pnpm --filter @goalify/web build",
+    "build:desktop": "pnpm --filter @goalify/desktop tauri build",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@vitejs/plugin-react-oxc": "^0.4.3",
+    "concurrently": "^9.2.1",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "app": {
+    "name": "Goalify",
+    "description": "甘特图任务管理器"
+  },
+  "nav": {
+    "projects": "项目",
+    "settings": "设置"
+  },
+  "tab": {
+    "home": "项目",
+    "closeTab": "关闭标签",
+    "newTab": "新建标签"
+  },
+  "project": {
+    "title": "项目",
+    "create": "新建项目",
+    "edit": "编辑项目",
+    "editDescription": "在下方更新您的项目详情。",
+    "delete": "删除项目",
+    "deleteConfirm": "您确定要删除「{{name}}」吗？此操作无法撤销，所有任务都将被删除。",
+    "name": "项目名称",
+    "description": "描述",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "noProjects": "暂无项目",
+    "createFirst": "创建您的第一个项目开始使用",
+    "actions": {
+      "edit": "编辑",
+      "delete": "删除"
+    }
+  },
+  "task": {
+    "title": "任务",
+    "create": "新建任务",
+    "edit": "编辑任务",
+    "delete": "删除任务",
+    "name": "任务名称",
+    "description": "描述",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "progress": "进度",
+    "dependencies": "依赖关系",
+    "milestone": "里程碑",
+    "color": "颜色",
+    "noTasks": "暂无任务",
+    "duration": "天"
+  },
+  "gantt": {
+    "today": "今天",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "viewDay": "日",
+    "viewWeek": "周",
+    "viewMonth": "月",
+    "week": "周",
+    "export": "导出",
+    "exportImage": "导出图片",
+    "exportExcel": "导出表格",
+    "exportImageSuccess": "甘特图导出成功",
+    "exportImageError": "图片导出失败",
+    "exportExcelSuccess": "Excel导出成功",
+    "exportExcelError": "Excel导出失败",
+    "refreshRange": "刷新日期范围"
+  },
+  "date": {
+    "weekdays": ["日", "一", "二", "三", "四", "五", "六"],
+    "weekdaysFull": [
+      "星期日",
+      "星期一",
+      "星期二",
+      "星期三",
+      "星期四",
+      "星期五",
+      "星期六"
+    ],
+    "months": [
+      "1月",
+      "2月",
+      "3月",
+      "4月",
+      "5月",
+      "6月",
+      "7月",
+      "8月",
+      "9月",
+      "10月",
+      "11月",
+      "12月"
+    ],
+    "monthsFull": [
+      "一月",
+      "二月",
+      "三月",
+      "四月",
+      "五月",
+      "六月",
+      "七月",
+      "八月",
+      "九月",
+      "十月",
+      "十一月",
+      "十二月"
+    ]
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "search": "搜索",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "close": "关闭"
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "theme": "主题",
+    "light": "浅色",
+    "dark": "深色"
+  }
+}
