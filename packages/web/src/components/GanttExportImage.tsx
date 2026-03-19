@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Calendar } from "lucide-react";
 import type { Task } from "../contexts/GanttContext";
 import { TASK_COLORS } from "./CreateTaskDialog";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -54,6 +55,14 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
   onReady,
 }) => {
   const { t } = useTranslation();
+  const {
+    formatMonth,
+    formatWeekday,
+    formatDay,
+    getWeekNumber,
+    formatDateRange,
+    formatFullDate,
+  } = useDateFormatter();
 
   React.useEffect(() => {
     if (onReady) {
@@ -80,23 +89,12 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
     return day === 0 || day === 6;
   };
 
-  const getWeekNumber = (date: Date): number => {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear =
-      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  };
-
   const totalWidth = days.length * dayWidth;
   const rowHeight = 56;
   const headerHeight = 56;
   const titleHeight = 60;
   const totalHeight =
     titleHeight + headerHeight + tasks.length * rowHeight + 80; // Added padding to prevent clipping
-
-  const formatDate = (date: Date) => {
-    return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`;
-  };
 
   const renderDayHeader = () => (
     <div style={{ display: "flex", height: "100%", minWidth: totalWidth }}>
@@ -130,9 +128,9 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
               opacity: 0.5,
             }}
           >
-            {t(`date.weekdays.${day.getDay()}`)}
+            {formatWeekday(day)}
           </span>
-          <span style={{ fontSize: "14px" }}>{day.getDate()}</span>
+          <span style={{ fontSize: "14px" }}>{formatDay(day)}</span>
         </div>
       ))}
     </div>
@@ -153,7 +151,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
             padding: "0 16px",
             width: week.daysCount * dayWidth,
             height: "100%",
-            minWidth: 120,
+            flexShrink: 0,
             backgroundColor:
               index % 2 === 0 ? "rgba(241, 245, 249, 0.2)" : "transparent",
           }}
@@ -177,8 +175,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
               whiteSpace: "nowrap",
             }}
           >
-            {week.start.getDate()}/{week.start.getMonth() + 1} -{" "}
-            {week.end.getDate()}/{week.end.getMonth() + 1}
+            {formatDateRange(week.start, week.end)}
           </span>
         </div>
       ))}
@@ -201,24 +198,13 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
             padding: "0 16px",
             width: monthData.daysCount * dayWidth,
             height: "100%",
-            minWidth: 100,
+            flexShrink: 0,
           }}
         >
           <span
             style={{ fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" }}
           >
-            {t(`date.months.${monthData.date.getMonth()}`)}
-          </span>
-          <span
-            style={{
-              fontSize: "10px",
-              fontWeight: 500,
-              color: COLORS.mutedForeground,
-              opacity: 0.6,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {monthData.date.getFullYear()}
+            {formatMonth(monthData.date)}
           </span>
         </div>
       ))}
@@ -455,7 +441,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
                   margin: 0,
                 }}
               >
-                {formatDate(dateRange.start)} - {formatDate(dateRange.end)} ·{" "}
+                {formatFullDate(dateRange.start)} - {formatFullDate(dateRange.end)} ·{" "}
                 {tasks.length} {t("task.title").toLowerCase()}
               </p>
             </div>

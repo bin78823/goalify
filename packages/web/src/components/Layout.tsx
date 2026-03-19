@@ -358,11 +358,6 @@ const TabItem: React.FC<TabItemProps> = ({
           <X className="w-2.5 h-2.5" />
         </button>
       )}
-
-      {/* 选中态指示器 */}
-      {isActive && (
-        <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-1 h-1 bg-[var(--vibrant-blue)] rounded-full shadow-[0_0_8px_var(--vibrant-blue)]" />
-      )}
     </div>
   );
 };

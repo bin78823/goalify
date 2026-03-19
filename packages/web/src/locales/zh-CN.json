@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Goalify",
-    "description": "甘特图任务管理器"
+    "description": "甘特图任务管理器",
+    "tagline": "项目管理"
   },
   "nav": {
     "projects": "项目",
@@ -25,6 +26,12 @@
     "endDate": "结束日期",
     "noProjects": "暂无项目",
     "createFirst": "创建您的第一个项目开始使用",
+    "emptyHint": "创建您的第一个项目，开始使用直观的甘特图界面来组织任务和跟踪进度。",
+    "manageHint": "使用可视化时间线和任务管理来管理和跟踪 {{count, number}} 个项目。",
+    "active": "活跃",
+    "tasks": "{{count, number}} 个任务",
+    "noDescription": "暂无描述",
+    "progress": "进度",
     "actions": {
       "edit": "编辑",
       "delete": "删除"

@@ -12,13 +12,21 @@ import GanttExportImage from "../components/GanttExportImage";
 import { exportGanttToExcel } from "../utils/excelExport";
 import CreateTaskDialog from "../components/CreateTaskDialog";
 import TaskDetailDrawer from "../components/TaskDetailDrawer";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 
 type ViewMode = "day" | "week" | "month";
 
 const GanttPage: React.FC = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const {
+    formatMonth,
+    formatWeekday,
+    formatDay,
+    getWeekNumber,
+    formatDateRange,
+  } = useDateFormatter();
   const { projects, addTask, updateTask, deleteTask, reorderTasks } =
     useGanttStore();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
@@ -214,13 +222,6 @@ const GanttPage: React.FC = () => {
     return day === 0 || day === 6;
   };
 
-  const getWeekNumber = (date: Date): number => {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear =
-      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  };
-
   const totalWidth = days.length * dayWidth;
 
   const renderDayHeader = () => (
@@ -232,15 +233,15 @@ const GanttPage: React.FC = () => {
             isToday(day)
               ? "bg-[var(--vibrant-blue)]/10 text-[var(--vibrant-blue)] font-black"
               : isWeekend(day)
-                ? "text-[var(--muted-foreground)] bg-slate-100"
+                ? "text-[var(--muted-foreground)] bg-[var(--accent)]"
                 : "text-[var(--muted-foreground)]"
           }`}
           style={{ width: dayWidth, height: "100%" }}
         >
           <span className="text-[10px] uppercase font-black tracking-tighter opacity-50">
-            {t(`date.weekdays.${day.getDay()}`)}
+            {formatWeekday(day)}
           </span>
-          <span className="text-sm">{day.getDate()}</span>
+          <span className="text-sm">{formatDay(day)}</span>
         </div>
       ))}
     </div>
@@ -251,21 +252,19 @@ const GanttPage: React.FC = () => {
       {weeks.map((week, index) => (
         <div
           key={index}
-          className={`flex flex-col items-start justify-center text-xs border-r border-slate-300/50 px-4 ${
+          className={`flex-shrink-0 flex flex-col items-start justify-center text-xs border-r border-slate-300/50 px-4 ${
             index % 2 === 0 ? "bg-[var(--secondary)]/20" : ""
           }`}
           style={{
             width: week.daysCount * dayWidth,
             height: "100%",
-            minWidth: 120,
           }}
         >
           <span className="text-xs font-medium text-[var(--foreground)] whitespace-nowrap">
             {t("gantt.week")} {getWeekNumber(week.start)}
           </span>
           <span className="text-[10px] font-medium text-[var(--muted-foreground)] opacity-60 whitespace-nowrap">
-            {week.start.getDate()}/{week.start.getMonth() + 1} -{" "}
-            {week.end.getDate()}/{week.end.getMonth() + 1}
+            {formatDateRange(week.start, week.end)}
           </span>
         </div>
       ))}
@@ -277,15 +276,14 @@ const GanttPage: React.FC = () => {
       {months.map((monthData, index) => (
         <div
           key={index}
-          className="flex flex-col items-start justify-center text-xs border-r border-slate-300/50 text-[var(--foreground)] px-4"
+          className="flex-shrink-0 flex flex-col items-start justify-center text-xs border-r border-slate-300/50 text-[var(--foreground)] px-4"
           style={{
             width: monthData.daysCount * dayWidth,
             height: "100%",
-            minWidth: 100,
           }}
         >
           <span className="text-xs font-medium whitespace-nowrap">
-            {t(`date.months.${monthData.date.getMonth()}`)}
+            {formatMonth(monthData.date)}
           </span>
           <span className="text-[10px] font-medium text-[var(--muted-foreground)] opacity-60 whitespace-nowrap">
             {monthData.date.getFullYear()}
@@ -322,12 +320,18 @@ const GanttPage: React.FC = () => {
     isScrollSyncing.current = true;
 
     const target = e.currentTarget;
-    
-    if (headerRef.current && headerRef.current.scrollLeft !== target.scrollLeft) {
+
+    if (
+      headerRef.current &&
+      headerRef.current.scrollLeft !== target.scrollLeft
+    ) {
       headerRef.current.scrollLeft = target.scrollLeft;
     }
 
-    if (taskListScrollRef.current && taskListScrollRef.current.scrollTop !== target.scrollTop) {
+    if (
+      taskListScrollRef.current &&
+      taskListScrollRef.current.scrollTop !== target.scrollTop
+    ) {
       taskListScrollRef.current.scrollTop = target.scrollTop;
     }
 
@@ -342,7 +346,10 @@ const GanttPage: React.FC = () => {
 
     const target = e.currentTarget;
 
-    if (ganttContentRef.current && ganttContentRef.current.scrollTop !== target.scrollTop) {
+    if (
+      ganttContentRef.current &&
+      ganttContentRef.current.scrollTop !== target.scrollTop
+    ) {
       ganttContentRef.current.scrollTop = target.scrollTop;
     }
 
@@ -816,6 +823,7 @@ const GanttPage: React.FC = () => {
         viewMode,
         dateRange: exportDateRange,
         t,
+        language: i18n.language,
       });
       toast.success(
         t("gantt.exportExcelSuccess") || "Excel exported successfully",
@@ -893,6 +901,9 @@ const GanttPage: React.FC = () => {
     <div className="flex flex-col h-[calc(100vh-120px)] text-[var(--foreground)]">
       <GanttHeader
         projectName={project.name}
+        projectDescription={project.description}
+        projectStartDate={project.startDate}
+        projectEndDate={project.endDate}
         taskCount={project.tasks.length}
         viewMode={viewMode}
         zoomLevel={zoomLevel}
@@ -949,10 +960,14 @@ const GanttPage: React.FC = () => {
             onMouseDown={handleMouseDown}
           />
 
-          <div className="flex-1 h-14 border-b border-[var(--border)] bg-gradient-to-r from-[var(--secondary)]/80 via-[var(--card)] to-[var(--card)] overflow-x-auto hide-scrollbar shadow-sm shrink-0"
+          <div
+            className="flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-gradient-to-r from-[var(--secondary)]/80 via-[var(--card)] to-[var(--card)] overflow-x-hidden overflow-y-scroll scrollbar-reserve shadow-sm shrink-0"
             ref={headerRef}
           >
-            <div className="flex h-full" style={{ minWidth: days.length * dayWidth }}>
+            <div
+              className="flex h-full"
+              style={{ minWidth: days.length * dayWidth }}
+            >
               {viewMode === "day" && renderDayHeader()}
               {viewMode === "week" && renderWeekHeader()}
               {viewMode === "month" && renderMonthHeader()}

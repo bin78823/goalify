@@ -102,7 +102,12 @@ const TaskListPanel: React.FC<TaskListPanelProps> = ({
           </SortableContext>
           <DragOverlay>
             {activeTask ? (
-              <div className="h-[56px] px-2 flex items-center gap-2 bg-[var(--accent)] border-l-[3px] border-l-[var(--vibrant-blue)] shadow-xl rounded-md">
+              <div
+                className="h-[56px] px-2 flex items-center gap-2 bg-[var(--accent)] border-l-[3px] shadow-xl rounded-md"
+                style={{
+                  borderLeftColor: activeTask.color || "#64748b",
+                }}
+              >
                 <button className="p-1 cursor-grabbing text-[var(--muted-foreground)]">
                   <GripVertical className="w-4 h-4" />
                 </button>
@@ -113,7 +118,10 @@ const TaskListPanel: React.FC<TaskListPanelProps> = ({
                   }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate text-[var(--vibrant-blue)]">
+                  <p
+                    className="text-sm font-semibold truncate"
+                    style={{ color: activeTask.color || "#64748b" }}
+                  >
                     {activeTask.name}
                   </p>
                   <p className="text-[10px] font-medium text-[var(--muted-foreground)]/80 mt-0.5">
@@ -176,12 +184,13 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     <div
       ref={setNodeRef}
       className={`group h-[56px] px-2 flex items-center gap-2 cursor-pointer transition-all duration-200 ${
-        isSelected
-          ? "bg-[var(--accent)] border-l-[3px] border-l-[var(--vibrant-blue)]"
-          : "hover:bg-[var(--secondary)]/60 border-l-[3px] border-l-transparent"
-      } ${index !== totalCount - 1 ? "border-b border-[var(--border)]/60" : ""} ${
-        isDragging ? "opacity-40" : ""
-      }`}
+        isSelected ? "bg-[var(--accent)]" : "hover:bg-[var(--secondary)]/60"
+      } border-l-[3px] ${
+        index !== totalCount - 1 ? "border-b border-[var(--border)]/60" : ""
+      } ${isDragging ? "opacity-40" : ""}`}
+      style={{
+        borderLeftColor: isSelected ? task.color || "#64748b" : "transparent",
+      }}
       onClick={() => {
         if (!hasDragged) {
           onClick();
@@ -201,11 +210,12 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       />
       <div className="flex-1 min-w-0">
         <p
-          className={`text-sm font-semibold truncate transition-colors ${
-            isSelected
-              ? "text-[var(--vibrant-blue)]"
-              : "text-[var(--foreground)] group-hover:text-[var(--foreground)]"
-          }`}
+          className="text-sm font-semibold truncate transition-colors"
+          style={{
+            color: isSelected
+              ? task.color || "#64748b"
+              : "var(--foreground)",
+          }}
         >
           {task.name}
         </p>

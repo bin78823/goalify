@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useRef } from "react";
 import { Calendar } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@goalify/ui";
 import type { Task } from "../contexts/GanttContext";
 import { TASK_COLORS } from "./CreateTaskDialog";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -88,9 +88,42 @@ const GanttChart: React.FC<GanttChartProps> = ({
   onScroll,
 }) => {
   const { t } = useTranslation();
+  const {
+    formatMonth,
+    formatWeekday,
+    formatDay,
+    getWeekNumber,
+    formatDateRange,
+  } = useDateFormatter();
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
   const taskBarRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const measure = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.clientHeight;
+        if (height > 0) {
+          setContainerHeight(height);
+        }
+      }
+    };
+
+    measure();
+
+    window.addEventListener("resize", measure);
+    const observer = new ResizeObserver(measure);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, []);
 
   const handleContentScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
@@ -231,13 +264,6 @@ const GanttChart: React.FC<GanttChartProps> = ({
     return day === 0 || day === 6;
   };
 
-  const getWeekNumber = (date: Date): number => {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear =
-      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  };
-
   const totalWidth = days.length * dayWidth;
 
   const getDragTransform = (taskId: string): number => {
@@ -290,15 +316,15 @@ const GanttChart: React.FC<GanttChartProps> = ({
             isToday(day)
               ? "bg-[var(--vibrant-blue)]/10 text-[var(--vibrant-blue)] font-black"
               : isWeekend(day)
-                ? "text-[var(--muted-foreground)] bg-slate-100"
+                ? "text-[var(--muted-foreground)] bg-[var(--accent)]"
                 : "text-[var(--muted-foreground)]"
           }`}
           style={{ width: dayWidth, height: "100%" }}
         >
           <span className="text-[10px] uppercase font-black tracking-tighter opacity-50">
-            {t(`date.weekdays.${day.getDay()}`)}
+            {formatWeekday(day)}
           </span>
-          <span className="text-sm">{day.getDate()}</span>
+          <span className="text-sm">{formatDay(day)}</span>
         </div>
       ))}
     </div>
@@ -309,21 +335,19 @@ const GanttChart: React.FC<GanttChartProps> = ({
       {weeks.map((week, index) => (
         <div
           key={index}
-          className={`flex flex-col items-start justify-center text-xs border-r border-slate-300/50 px-4 ${
+          className={`flex-shrink-0 flex flex-col items-start justify-center text-xs border-r border-slate-300/50 px-4 ${
             index % 2 === 0 ? "bg-[var(--secondary)]/20" : ""
           }`}
           style={{
             width: week.daysCount * dayWidth,
             height: "100%",
-            minWidth: 120,
           }}
         >
           <span className="text-xs font-medium text-[var(--foreground)] whitespace-nowrap">
             {t("gantt.week")} {getWeekNumber(week.start)}
           </span>
           <span className="text-[10px] font-medium text-[var(--muted-foreground)] opacity-60 whitespace-nowrap">
-            {week.start.getDate()}/{week.start.getMonth() + 1} -{" "}
-            {week.end.getDate()}/{week.end.getMonth() + 1}
+            {formatDateRange(week.start, week.end)}
           </span>
         </div>
       ))}
@@ -335,18 +359,14 @@ const GanttChart: React.FC<GanttChartProps> = ({
       {months.map((monthData, index) => (
         <div
           key={index}
-          className="flex flex-col items-start justify-center text-xs border-r border-slate-300/50 text-[var(--foreground)] px-4"
+          className="flex-shrink-0 flex flex-col items-start justify-center text-xs border-r border-slate-300/50 text-[var(--foreground)] px-4"
           style={{
             width: monthData.daysCount * dayWidth,
             height: "100%",
-            minWidth: 100,
           }}
         >
-          <span className="text-xs font-medium whitespace-nowrap">
-            {t(`date.months.${monthData.date.getMonth()}`)}
-          </span>
-          <span className="text-[10px] font-medium text-[var(--muted-foreground)] opacity-60 whitespace-nowrap">
-            {monthData.date.getFullYear()}
+          <span className="text-xs font-medium whitespace-nowrap text-nowrap">
+            {formatMonth(monthData.date)}
           </span>
         </div>
       ))}
@@ -362,7 +382,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
             isToday(day)
               ? "bg-[var(--vibrant-blue)]/5"
               : isWeekend(day)
-                ? "bg-slate-50"
+                ? "bg-[var(--muted)]"
                 : ""
           }`}
           style={{ width: dayWidth }}
@@ -498,8 +518,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
                 <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
                   <Calendar className="w-3.5 h-3.5 text-[var(--vibrant-blue)]" />
                   <span>
-                    {new Date(task.startDate).toLocaleDateString()} →{" "}
-                    {new Date(task.endDate).toLocaleDateString()}
+                    {formatDateRange(task.startDate, task.endDate)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -527,8 +546,9 @@ const GanttChart: React.FC<GanttChartProps> = ({
   return (
     <div className="flex flex-col h-full min-w-0">
       <div
-        className="flex-1 bg-[var(--background)]/50 overflow-auto"
+        className="flex-1 min-w-0 bg-[var(--background)]/50 overflow-auto scrollbar-visible"
         ref={(el) => {
+          containerRef.current = el;
           if (ganttRef) {
             ganttRef.current = el;
           }
@@ -542,7 +562,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
           className="relative"
           style={{
             minWidth: totalWidth,
-            height: `${tasks.length * 56}px`,
+            height: `${Math.max(tasks.length * 56, containerHeight)}px`,
           }}
         >
           {renderGridLines()}

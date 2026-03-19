@@ -9,6 +9,7 @@ interface ExcelExportOptions {
   viewMode: ViewMode;
   dateRange: { start: Date; end: Date };
   t: (key: string) => string;
+  language: string;
 }
 
 const hexToARGB = (hex: string): string => {
@@ -114,6 +115,7 @@ export const exportGanttToExcel = async ({
   viewMode,
   dateRange,
   t,
+  language,
 }: ExcelExportOptions) => {
   try {
     const workbook = new ExcelJS.Workbook();
@@ -169,7 +171,7 @@ export const exportGanttToExcel = async ({
     const subtitleRow = worksheet.getRow(2);
     subtitleRow.height = 24;
     subtitleRow.getCell(1).value =
-      `${tasks.length} ${t("task.title") || "Tasks"} · ${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`;
+      `${tasks.length} ${t("task.title") || "Tasks"} · ${dateRange.start.toLocaleDateString(language)} - ${dateRange.end.toLocaleDateString(language)}`;
     subtitleRow.getCell(1).font = {
       size: 10,
       color: { argb: "FF64748B" },
@@ -395,7 +397,7 @@ export const exportGanttToExcel = async ({
       };
 
       const startCell = row.getCell(2);
-      startCell.value = startDate.toLocaleDateString();
+      startCell.value = startDate.toLocaleDateString(language);
       startCell.font = { size: 10, color: { argb: "FF64748B" } };
       startCell.alignment = { vertical: "middle", horizontal: "center" };
       startCell.border = {
@@ -406,7 +408,7 @@ export const exportGanttToExcel = async ({
       };
 
       const endCell = row.getCell(3);
-      endCell.value = endDate.toLocaleDateString();
+      endCell.value = endDate.toLocaleDateString(language);
       endCell.font = { size: 10, color: { argb: "FF64748B" } };
       endCell.alignment = { vertical: "middle", horizontal: "center" };
       endCell.border = {

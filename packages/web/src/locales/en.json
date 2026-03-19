@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Goalify",
-    "description": "Gantt Task Manager"
+    "description": "Gantt Task Manager",
+    "tagline": "Project Management"
   },
   "nav": {
     "projects": "Projects",
@@ -25,6 +26,12 @@
     "endDate": "End Date",
     "noProjects": "No projects yet",
     "createFirst": "Create your first project to get started",
+    "emptyHint": "Create your first project to start organizing tasks and tracking progress with an intuitive Gantt chart interface.",
+    "manageHint": "Manage and track {{count}} projects with visual timelines and task management.",
+    "active": "active",
+    "tasks": "{{count}} tasks",
+    "noDescription": "No description provided.",
+    "progress": "Progress",
     "actions": {
       "edit": "Edit",
       "delete": "Delete"
