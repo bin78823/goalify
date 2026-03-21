@@ -4,6 +4,7 @@ export interface Project {
   description: string;
   start_date: string;
   end_date: string;
+  icon: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export interface CreateProjectRequest {
   description: string;
   start_date: string;
   end_date: string;
+  icon?: string;
 }
 
 export interface UpdateProjectRequest {
@@ -36,6 +38,7 @@ export interface UpdateProjectRequest {
   description?: string;
   start_date?: string;
   end_date?: string;
+  icon?: string | null;
 }
 
 export interface CreateTaskRequest {

@@ -52,6 +52,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "macOS": {
+      "entitlements": "entitlements.plist"
+    },
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"

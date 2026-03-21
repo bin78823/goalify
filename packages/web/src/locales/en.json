@@ -24,6 +24,14 @@
     "description": "Description",
     "startDate": "Start Date",
     "endDate": "End Date",
+    "icon": "Project Icon",
+    "validation": {
+      "nameRequired": "Project name is required",
+      "nameTooLong": "Project name must be 50 characters or less",
+      "startDateRequired": "Start date is required",
+      "endDateRequired": "End date is required",
+      "endDateBeforeStart": "End date cannot be earlier than start date"
+    },
     "noProjects": "No projects yet",
     "createFirst": "Create your first project to get started",
     "emptyHint": "Create your first project to start organizing tasks and tracking progress with an intuitive Gantt chart interface.",
@@ -51,7 +59,14 @@
     "milestone": "Milestone",
     "color": "Color",
     "noTasks": "No tasks yet",
-    "duration": "days"
+    "duration": "days",
+    "validation": {
+      "nameRequired": "Task name is required",
+      "nameTooLong": "Task name must be 50 characters or less",
+      "startDateRequired": "Start date is required",
+      "endDateRequired": "End date is required",
+      "endDateBeforeStart": "End date cannot be earlier than start date"
+    }
   },
   "gantt": {
     "today": "Today",
@@ -127,5 +142,22 @@
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark"
+  },
+  "imageUpload": {
+    "upload": "Upload",
+    "replace": "Replace",
+    "hint": "Optional. Max 512x512, 2MB",
+    "error": {
+      "type": "Invalid file type. Allowed: {{types}}",
+      "size": "File too large. Max size: {{size}}",
+      "dimension": "Image too large. Max: {{width}}x{{height}}px",
+      "invalid": "Invalid image file",
+      "read": "Failed to read file"
+    }
+  },
+  "emptyProjects": {
+    "ganttCharts": "Gantt Charts",
+    "taskTracking": "Task Tracking",
+    "visualTimeline": "Visual Timeline"
   }
 }

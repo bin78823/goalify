@@ -73,15 +73,15 @@ const EmptyProjects: React.FC<EmptyProjectsProps> = ({ onCreateClick }) => {
       <div className="flex items-center gap-8 mt-12 text-xs text-[var(--muted-foreground)]/60">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--vibrant-blue)]" />
-          <span>Gantt Charts</span>
+          <span>{t("emptyProjects.ganttCharts")}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--vibrant-violet)]" />
-          <span>Task Tracking</span>
+          <span>{t("emptyProjects.taskTracking")}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--vibrant-blue)]/60" />
-          <span>Visual Timeline</span>
+          <span>{t("emptyProjects.visualTimeline")}</span>
         </div>
       </div>
     </div>

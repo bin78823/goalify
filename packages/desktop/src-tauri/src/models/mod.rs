@@ -7,6 +7,7 @@ pub struct Project {
     pub description: String,
     pub start_date: String,
     pub end_date: String,
+    pub icon: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -33,6 +34,7 @@ pub struct CreateProjectRequest {
     pub description: String,
     pub start_date: String,
     pub end_date: String,
+    pub icon: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +44,7 @@ pub struct UpdateProjectRequest {
     pub description: Option<String>,
     pub start_date: Option<String>,
     pub end_date: Option<String>,
+    pub icon: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

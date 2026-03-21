@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Calendar } from "lucide-react";
 import { Button } from "@goalify/ui";
@@ -6,7 +7,6 @@ import {
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
   DrawerDescription,
 } from "@goalify/ui";
 import { Input } from "@goalify/ui";
@@ -31,6 +31,19 @@ const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   onDelete,
 }) => {
   const { t, i18n } = useTranslation();
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    if (task) {
+      setName(task.name);
+    }
+  }, [task?.id, task?.name]);
+
+  const handleNameBlur = () => {
+    if (task && name.trim() && name.trim() !== task.name) {
+      onUpdate(task.id, { name: name.trim() });
+    }
+  };
 
   const handleDelete = () => {
     if (task) {
@@ -39,8 +52,24 @@ const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
     }
   };
 
+  const getNameError = () => {
+    if (!name.trim()) {
+      return t("task.validation.nameRequired");
+    }
+    if (name.length > 50) {
+      return t("task.validation.nameTooLong");
+    }
+    return null;
+  };
+
+  const nameError = getNameError();
+
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()} direction="right">
+    <Drawer
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      direction="right"
+    >
       <DrawerContent
         direction="right"
         className="bg-[var(--card)] border-[var(--border)] text-[var(--foreground)] h-screen w-full max-w-md"
@@ -52,15 +81,18 @@ const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               className="w-5 h-5 rounded-full shadow-md ring-2 ring-[var(--background)] flex-shrink-0"
               style={{ backgroundColor: task?.color || "#64748b" }}
             />
-            <Input
-              value={task?.name || ""}
-              onChange={(e) =>
-                task &&
-                onUpdate(task.id, { name: e.target.value })
-              }
-              className="h-9 text-base font-semibold bg-[var(--background)] border-none px-2 focus:ring-2 focus:ring-[var(--vibrant-blue)]"
-              placeholder="Task name"
-            />
+            <div className="flex-1">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={handleNameBlur}
+                className={`h-9 text-base font-semibold bg-[var(--background)] border-none px-2 focus:ring-2 focus:ring-[var(--vibrant-blue)] ${nameError ? "ring-2 ring-red-500" : ""}`}
+                placeholder="Task name"
+              />
+              {nameError && (
+                <p className="text-red-500 text-xs mt-1">{nameError}</p>
+              )}
+            </div>
           </div>
           <DrawerDescription className="sr-only">
             Task details panel
@@ -136,7 +168,9 @@ const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                   {TASK_COLORS.map((color) => (
                     <button
                       key={color.name}
-                      onClick={() => onUpdate(task.id, { color: color.primary })}
+                      onClick={() =>
+                        onUpdate(task.id, { color: color.primary })
+                      }
                       className={`w-9 h-9 rounded-full transition-all duration-300 ${
                         task.color === color.primary
                           ? "ring-4 ring-offset-2 ring-[var(--ring)] scale-110 shadow-lg"

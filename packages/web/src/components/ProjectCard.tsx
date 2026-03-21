@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   FolderKanban,
@@ -17,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@goalify/ui";
-import { Popover, PopoverContent, PopoverTrigger } from "@goalify/ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +26,7 @@ import {
 import type { Project } from "../contexts/GanttContext";
 import { useTabNavigation } from "../hooks/useTabNavigation";
 import { useGanttStore } from "../contexts/GanttContext";
-import EditProjectDialog from "./EditProjectDialog";
+import ProjectFormDialog from "./ProjectFormDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 interface ProjectCardProps {
@@ -128,8 +126,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="w-9 h-9 bg-gradient-to-br from-[var(--vibrant-blue)]/10 to-[var(--vibrant-violet)]/10 rounded-xl flex items-center justify-center text-[var(--vibrant-blue)] group-hover:from-[var(--vibrant-blue)] group-hover:to-[var(--vibrant-violet)] group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md">
-              <FolderKanban className="h-4 w-4" />
+            <div className="w-9 h-9 bg-gradient-to-br from-[var(--vibrant-blue)]/10 to-[var(--vibrant-violet)]/10 rounded-xl flex items-center justify-center text-[var(--vibrant-blue)] group-hover:from-[var(--vibrant-blue)] group-hover:to-[var(--vibrant-violet)] group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md overflow-hidden">
+              {project.icon ? (
+                <img
+                  src={project.icon}
+                  alt={project.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FolderKanban className="h-4 w-4" />
+              )}
             </div>
           </div>
         </CardHeader>
@@ -201,11 +207,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         </CardContent>
       </Card>
 
-      <EditProjectDialog
+      <ProjectFormDialog
         isOpen={isEditOpen}
         onOpenChange={setIsEditOpen}
+        mode="edit"
         project={project}
-        onSave={handleEditSave}
+        onSubmit={handleEditSave}
       />
 
       <DeleteConfirmDialog

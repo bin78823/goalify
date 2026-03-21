@@ -24,6 +24,14 @@
     "description": "描述",
     "startDate": "開始日期",
     "endDate": "結束日期",
+    "icon": "項目圖標",
+    "validation": {
+      "nameRequired": "請輸入項目名稱",
+      "nameTooLong": "項目名稱不能超過50個字符",
+      "startDateRequired": "請選擇開始日期",
+      "endDateRequired": "請選擇結束日期",
+      "endDateBeforeStart": "結束日期不能早於開始日期"
+    },
     "noProjects": "暫無項目",
     "createFirst": "創建您的第一個項目開始使用",
     "emptyHint": "創建您的第一個項目，開始使用直觀的甘特圖介面來組織任務和追蹤進度。",
@@ -51,7 +59,14 @@
     "milestone": "里程碑",
     "color": "顏色",
     "noTasks": "暫無任務",
-    "duration": "天"
+    "duration": "天",
+    "validation": {
+      "nameRequired": "請輸入任務名稱",
+      "nameTooLong": "任務名稱不能超過50個字符",
+      "startDateRequired": "請選擇開始日期",
+      "endDateRequired": "請選擇結束日期",
+      "endDateBeforeStart": "結束日期不能早於開始日期"
+    }
   },
   "gantt": {
     "today": "今天",
@@ -127,5 +142,22 @@
     "theme": "主題",
     "light": "淺色",
     "dark": "深色"
+  },
+  "imageUpload": {
+    "upload": "上傳",
+    "replace": "替換",
+    "hint": "選填，最大 512x512，2MB",
+    "error": {
+      "type": "檔案類型無效，僅支援：{{types}}",
+      "size": "檔案過大，最大：{{size}}",
+      "dimension": "圖片過大，最大：{{width}}x{{height}}px",
+      "invalid": "無效的圖片檔案",
+      "read": "檔案讀取失敗"
+    }
+  },
+  "emptyProjects": {
+    "ganttCharts": "甘特圖",
+    "taskTracking": "任務追蹤",
+    "visualTimeline": "視覺化時間線"
   }
 }

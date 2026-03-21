@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FolderKanban, Sparkles } from "lucide-react";
 import { useGanttStore } from "../contexts/GanttContext";
 import ProjectCard from "../components/ProjectCard";
-import CreateProjectDialog from "../components/CreateProjectDialog";
+import ProjectFormDialog from "../components/ProjectFormDialog";
 import EmptyProjects from "../components/EmptyProjects";
 import GoalifyLogo from "../components/GoalifyLogo";
 
@@ -17,12 +17,14 @@ const ProjectsPage: React.FC = () => {
     description: string;
     startDate: Date;
     endDate: Date;
+    icon?: string;
   }) => {
     addProject({
       name: project.name,
       description: project.description,
       startDate: project.startDate,
       endDate: project.endDate,
+      icon: project.icon,
     });
     setIsCreateOpen(false);
   };
@@ -97,10 +99,11 @@ const ProjectsPage: React.FC = () => {
                   : t("project.manageHint", { count: projects.length })}
               </p>
             </div>
-            <CreateProjectDialog
+            <ProjectFormDialog
               isOpen={isCreateOpen}
               onOpenChange={setIsCreateOpen}
-              onCreate={handleCreateProject}
+              mode="create"
+              onSubmit={handleCreateProject}
             />
           </div>
 

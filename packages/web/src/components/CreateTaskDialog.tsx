@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@goalify/ui";
 import {
@@ -7,12 +7,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@goalify/ui";
 import { Input } from "@goalify/ui";
 import { Label } from "@goalify/ui";
 import { DatePicker } from "@goalify/ui";
 import ProgressSliderWithMilestones from "./ProgressSliderWithMilestones";
+import { useFormValidation, ValidationRules } from "../hooks/useFormValidation";
 
 export const TASK_COLORS = [
   {
@@ -70,42 +70,107 @@ interface CreateTaskDialogProps {
   }) => void;
 }
 
+interface FormValues {
+  name: string;
+  description: string;
+  startDate: Date;
+  endDate: Date;
+}
+
 const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
   isOpen,
   onOpenChange,
   onCreate,
 }) => {
   const { t, i18n } = useTranslation();
-  const [newTask, setNewTask] = useState<TaskFormData>({
-    name: "",
-    description: "",
-    startDate: new Date(),
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    progress: 0,
-    isMilestone: false,
-  });
   const [selectedColor, setSelectedColor] = useState(TASK_COLORS[0]);
 
-  const handleCreate = () => {
-    if (!newTask.name.trim()) return;
-    onCreate({
-      name: newTask.name,
-      description: newTask.description,
-      startDate: new Date(newTask.startDate),
-      endDate: new Date(newTask.endDate),
-      progress: newTask.progress,
-      isMilestone: newTask.isMilestone,
-      color: selectedColor.primary,
-    });
-    setNewTask({
+  const defaultInitialValues = useMemo<FormValues>(
+    () => ({
       name: "",
       description: "",
       startDate: new Date(),
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      progress: 0,
-      isMilestone: false,
-    });
-    setSelectedColor(TASK_COLORS[0]);
+    }),
+    [],
+  );
+
+  const validationRules = useMemo<ValidationRules<FormValues>>(
+    () => ({
+      name: {
+        required: t("task.validation.nameRequired"),
+        maxLength: {
+          value: 50,
+          message: t("task.validation.nameTooLong"),
+        },
+      },
+      startDate: {
+        required: t("task.validation.startDateRequired"),
+      },
+      endDate: {
+        required: t("task.validation.endDateRequired"),
+      },
+    }),
+    [t],
+  );
+
+  const crossFieldValidate = useMemo(
+    () => (vals: FormValues) => {
+      const crossErrors: Record<string, string> = {};
+      if (vals.startDate && vals.endDate && vals.endDate < vals.startDate) {
+        crossErrors.endDate = t("task.validation.endDateBeforeStart");
+      }
+      return crossErrors;
+    },
+    [t],
+  );
+
+  const {
+    values,
+    errors,
+    touched,
+    setValue,
+    setFieldTouched,
+    validateAll,
+    reset,
+  } = useFormValidation<FormValues>({
+    rules: validationRules,
+    initialValues: defaultInitialValues,
+    crossFieldValidate,
+  });
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset(defaultInitialValues);
+      setSelectedColor(TASK_COLORS[0]);
+    }
+  }, [isOpen, defaultInitialValues, reset]);
+
+  const handleCreate = () => {
+    if (validateAll()) {
+      onCreate({
+        name: values.name,
+        description: values.description,
+        startDate: new Date(values.startDate),
+        endDate: new Date(values.endDate),
+        progress: 0,
+        isMilestone: false,
+        color: selectedColor.primary,
+      });
+      onOpenChange(false);
+    }
+  };
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) {
+      setValue("startDate", date);
+    }
+  };
+
+  const handleEndDateChange = (date: Date | undefined) => {
+    if (date) {
+      setValue("endDate", date);
+    }
   };
 
   return (
@@ -123,43 +188,45 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
             </Label>
             <Input
               id="taskName"
-              value={newTask.name}
-              onChange={(e) =>
-                setNewTask({ ...newTask, name: e.target.value })
-              }
+              value={values.name}
+              onChange={(e) => setValue("name", e.target.value)}
+              onBlur={() => setFieldTouched("name")}
               placeholder="Task name"
-              className={`bg-[var(--secondary)] border-[var(--border)] rounded-lg h-10 px-3 transition-all duration-200 focus:ring-2 focus:ring-[var(--vibrant-blue)] ${
-                newTask.name.trim()
-                  ? "border-l-[3px] border-l-[var(--vibrant-blue)] bg-[var(--accent)]"
-                  : ""
-              }`}
+              className={`bg-[var(--secondary)] border-[var(--border)] rounded-lg h-10 px-3 transition-all duration-200 focus:ring-2 focus:ring-[var(--vibrant-blue)] ${touched.name && errors.name ? "border-red-500" : ""}`}
             />
+            {touched.name && errors.name && (
+              <p className="text-red-500 text-sm">{errors.name}</p>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="taskStart" className="font-medium text-sm">
-                {t("task.startDate")}
-              </Label>
-              <DatePicker
-                value={newTask.startDate}
-                locale={i18n.language}
-                onChange={(date) =>
-                  date && setNewTask({ ...newTask, startDate: date })
-                }
-              />
+          <div className="grid gap-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="taskStart" className="font-medium text-sm">
+                  {t("task.startDate")}
+                </Label>
+                <DatePicker
+                  value={values.startDate}
+                  locale={i18n.language}
+                  onChange={handleStartDateChange}
+                />
+                {touched.startDate && errors.startDate && (
+                  <p className="text-red-500 text-sm">{errors.startDate}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="taskEnd" className="font-medium text-sm">
+                  {t("task.endDate")}
+                </Label>
+                <DatePicker
+                  value={values.endDate}
+                  locale={i18n.language}
+                  onChange={handleEndDateChange}
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="taskEnd" className="font-medium text-sm">
-                {t("task.endDate")}
-              </Label>
-              <DatePicker
-                value={newTask.endDate}
-                locale={i18n.language}
-                onChange={(date) =>
-                  date && setNewTask({ ...newTask, endDate: date })
-                }
-              />
-            </div>
+            {errors.endDate && (
+              <p className="text-red-500 text-sm">{errors.endDate}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="progress" className="font-medium text-sm">
@@ -167,22 +234,15 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
             </Label>
             <div className="flex items-center gap-3">
               <div className="flex-1">
-                <ProgressSliderWithMilestones
-                  value={newTask.progress}
-                  onChange={(value) =>
-                    setNewTask({ ...newTask, progress: value })
-                  }
-                />
+                <ProgressSliderWithMilestones value={0} onChange={() => {}} />
               </div>
               <span className="text-sm font-medium text-[var(--vibrant-blue)] w-10 text-right">
-                {newTask.progress}%
+                0%
               </span>
             </div>
           </div>
           <div className="grid gap-2">
-            <Label className="font-medium text-sm">
-              {t("task.color")}
-            </Label>
+            <Label className="font-medium text-sm">{t("task.color")}</Label>
             <div className="flex gap-2">
               {TASK_COLORS.map((color) => (
                 <button

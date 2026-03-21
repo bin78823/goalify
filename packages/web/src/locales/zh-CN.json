@@ -24,6 +24,14 @@
     "description": "描述",
     "startDate": "开始日期",
     "endDate": "结束日期",
+    "icon": "项目图标",
+    "validation": {
+      "nameRequired": "请输入项目名称",
+      "nameTooLong": "项目名称不能超过50个字符",
+      "startDateRequired": "请选择开始日期",
+      "endDateRequired": "请选择结束日期",
+      "endDateBeforeStart": "结束日期不能早于开始日期"
+    },
     "noProjects": "暂无项目",
     "createFirst": "创建您的第一个项目开始使用",
     "emptyHint": "创建您的第一个项目，开始使用直观的甘特图界面来组织任务和跟踪进度。",
@@ -51,7 +59,14 @@
     "milestone": "里程碑",
     "color": "颜色",
     "noTasks": "暂无任务",
-    "duration": "天"
+    "duration": "天",
+    "validation": {
+      "nameRequired": "请输入任务名称",
+      "nameTooLong": "任务名称不能超过50个字符",
+      "startDateRequired": "请选择开始日期",
+      "endDateRequired": "请选择结束日期",
+      "endDateBeforeStart": "结束日期不能早于开始日期"
+    }
   },
   "gantt": {
     "today": "今天",
@@ -127,5 +142,22 @@
     "theme": "主题",
     "light": "浅色",
     "dark": "深色"
+  },
+  "imageUpload": {
+    "upload": "上传",
+    "replace": "替换",
+    "hint": "选填，最大 512x512，2MB",
+    "error": {
+      "type": "文件类型无效，仅支持：{{types}}",
+      "size": "文件过大，最大：{{size}}",
+      "dimension": "图片过大，最大：{{width}}x{{height}}px",
+      "invalid": "无效的图片文件",
+      "read": "文件读取失败"
+    }
+  },
+  "emptyProjects": {
+    "ganttCharts": "甘特图",
+    "taskTracking": "任务跟踪",
+    "visualTimeline": "可视化时间线"
   }
 }
