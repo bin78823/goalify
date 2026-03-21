@@ -1,9 +1,26 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
-import en from './locales/en.json';
-import zhCN from './locales/zh-CN.json';
-import zhTW from './locales/zh-TW.json';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+import en from "./locales/en.json";
+import zhCN from "./locales/zh-CN.json";
+import zhTW from "./locales/zh-TW.json";
+import ja from "./locales/ja.json";
+import de from "./locales/de.json";
+import fr from "./locales/fr.json";
+
+const supportedLngs = ["en", "zh-CN", "zh-TW", "ja", "de", "fr"];
+
+const normalizeLng = (lng: string): string => {
+  if (supportedLngs.includes(lng)) return lng;
+  if (lng.startsWith("zh")) {
+    return lng.includes("TW") || lng.includes("HK") ? "zh-TW" : "zh-CN";
+  }
+  const base = lng.split("-")[0];
+  if (base === "ja" || base === "de" || base === "fr") {
+    return base;
+  }
+  return supportedLngs.includes(base) ? base : "en";
+};
 
 i18n
   .use(LanguageDetector)
@@ -11,17 +28,26 @@ i18n
   .init({
     resources: {
       en: { translation: en },
-      'zh-CN': { translation: zhCN },
-      'zh-TW': { translation: zhTW },
+      "zh-CN": { translation: zhCN },
+      "zh-TW": { translation: zhTW },
+      ja: { translation: ja },
+      de: { translation: de },
+      fr: { translation: fr },
     },
-    fallbackLng: 'en',
+    fallbackLng: "en",
     interpolation: {
       escapeValue: false,
     },
     detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
+      order: ["localStorage", "navigator", "htmlTag"],
+      caches: ["localStorage"],
     },
   });
+
+const detectedLng = i18n.language || navigator.language;
+const normalizedLng = normalizeLng(detectedLng);
+if (normalizedLng !== i18n.language) {
+  i18n.changeLanguage(normalizedLng);
+}
 
 export default i18n;

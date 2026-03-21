@@ -206,6 +206,9 @@ const Layout: React.FC = () => {
                 <SelectItem value="en">EN</SelectItem>
                 <SelectItem value="zh-CN">CN</SelectItem>
                 <SelectItem value="zh-TW">TW</SelectItem>
+                <SelectItem value="ja">JA</SelectItem>
+                <SelectItem value="de">DE</SelectItem>
+                <SelectItem value="fr">FR</SelectItem>
               </SelectContent>
             </Select>
           </div>

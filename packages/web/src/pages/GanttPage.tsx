@@ -109,7 +109,7 @@ const GanttPage: React.FC = () => {
         end.setDate(end.getDate() + 11);
         break;
       case "week":
-        start.setDate(start.getDate() - start.getDay());
+        start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
         const daysNeeded = Math.ceil(
           (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
         );
@@ -150,6 +150,7 @@ const GanttPage: React.FC = () => {
     const result: { start: Date; end: Date; daysCount: number }[] = [];
     const current = new Date(dateRange.start);
     current.setHours(0, 0, 0, 0);
+    current.setDate(current.getDate() - ((current.getDay() + 6) % 7));
     while (current <= dateRange.end) {
       const weekStart = new Date(current);
       const weekEnd = new Date(current);
@@ -752,6 +753,7 @@ const GanttPage: React.FC = () => {
     const result: { start: Date; end: Date; daysCount: number }[] = [];
     const current = new Date(exportDateRange.start);
     current.setHours(0, 0, 0, 0);
+    current.setDate(current.getDate() - ((current.getDay() + 6) % 7));
     while (current <= exportDateRange.end) {
       const weekStart = new Date(current);
       const weekEnd = new Date(current);

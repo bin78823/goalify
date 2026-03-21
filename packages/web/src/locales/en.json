@@ -39,6 +39,7 @@
     "active": "active",
     "tasks": "{{count}} tasks",
     "noDescription": "No description provided.",
+    "noTasks": "No tasks",
     "progress": "Progress",
     "actions": {
       "edit": "Edit",
@@ -60,6 +61,11 @@
     "color": "Color",
     "noTasks": "No tasks yet",
     "duration": "days",
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "pending": "Pending"
+    },
     "validation": {
       "nameRequired": "Task name is required",
       "nameTooLong": "Task name must be 50 characters or less",

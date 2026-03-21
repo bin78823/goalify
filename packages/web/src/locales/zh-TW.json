@@ -39,6 +39,7 @@
     "active": "活躍",
     "tasks": "{{count, number}} 個任務",
     "noDescription": "暫無描述",
+    "noTasks": "暫無任務",
     "progress": "進度",
     "actions": {
       "edit": "編輯",
@@ -60,6 +61,11 @@
     "color": "顏色",
     "noTasks": "暫無任務",
     "duration": "天",
+    "status": {
+      "completed": "已完成",
+      "inProgress": "進行中",
+      "pending": "待開始"
+    },
     "validation": {
       "nameRequired": "請輸入任務名稱",
       "nameTooLong": "任務名稱不能超過50個字符",

@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { TooltipProvider, Toaster } from '@goalify/ui';
-import { GanttProvider, useGanttStore } from './contexts/GanttContext';
-import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n';
-import Layout from './components/Layout';
-import ProjectsPage from './pages/ProjectsPage';
-import GanttPage from './pages/GanttPage';
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { TooltipProvider, Toaster } from "@goalify/ui";
+import { GanttProvider, useGanttStore } from "./contexts/GanttContext";
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n";
+import Layout from "./components/Layout";
+import ProjectsPage from "./pages/ProjectsPage";
+import GanttPage from "./pages/GanttPage";
 
 function AppContent() {
   const loadProjects = useGanttStore((s) => s.loadProjects);
@@ -31,7 +31,7 @@ function AppContent() {
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
-      <TooltipProvider>
+      <TooltipProvider delayDuration={1000}>
         <GanttProvider>
           <AppContent />
           <Toaster richColors position="top-right" />

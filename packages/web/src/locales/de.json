@@ -1,0 +1,169 @@
+{
+  "app": {
+    "name": "Goalify",
+    "description": "Gantt-Aufgabenmanager",
+    "tagline": "Projektmanagement"
+  },
+  "nav": {
+    "projects": "Projekte",
+    "settings": "Einstellungen"
+  },
+  "tab": {
+    "home": "Projekte",
+    "closeTab": "Tab schließen",
+    "newTab": "Neuer Tab"
+  },
+  "project": {
+    "title": "Projekte",
+    "create": "Neues Projekt",
+    "edit": "Projekt bearbeiten",
+    "editDescription": "Aktualisieren Sie Ihre Projektdetails unten.",
+    "delete": "Projekt löschen",
+    "deleteConfirm": "Sind Sie sicher, dass Sie \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und alle Aufgaben werden entfernt.",
+    "name": "Projektname",
+    "description": "Beschreibung",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "icon": "Projektsymbol",
+    "validation": {
+      "nameRequired": "Projektname ist erforderlich",
+      "nameTooLong": "Projektname darf maximal 50 Zeichen lang sein",
+      "startDateRequired": "Startdatum ist erforderlich",
+      "endDateRequired": "Enddatum ist erforderlich",
+      "endDateBeforeStart": "Enddatum darf nicht vor dem Startdatum liegen"
+    },
+    "noProjects": "Noch keine Projekte",
+    "createFirst": "Erstellen Sie Ihr erstes Projekt, um zu beginnen",
+    "emptyHint": "Erstellen Sie Ihr erstes Projekt, um Aufgaben zu organisieren und den Fortschritt mit einer intuitiven Gantt-Diagramm-Oberfläche zu verfolgen.",
+    "manageHint": "Verwalten und verfolgen Sie {{count}} Projekte mit visuellen Zeitachsen und Aufgabenverwaltung.",
+    "active": "aktiv",
+    "tasks": "{{count}} Aufgaben",
+    "noDescription": "Keine Beschreibung angegeben.",
+    "noTasks": "Keine Aufgaben",
+    "progress": "Fortschritt",
+    "actions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    }
+  },
+  "task": {
+    "title": "Aufgaben",
+    "create": "Neue Aufgabe",
+    "edit": "Aufgabe bearbeiten",
+    "delete": "Aufgabe löschen",
+    "name": "Aufgabenname",
+    "description": "Beschreibung",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "progress": "Fortschritt",
+    "dependencies": "Abhängigkeiten",
+    "milestone": "Meilenstein",
+    "color": "Farbe",
+    "noTasks": "Noch keine Aufgaben",
+    "duration": "Tage",
+    "status": {
+      "completed": "Abgeschlossen",
+      "inProgress": "In Bearbeitung",
+      "pending": "Ausstehend"
+    },
+    "validation": {
+      "nameRequired": "Aufgabenname ist erforderlich",
+      "nameTooLong": "Aufgabenname darf maximal 50 Zeichen lang sein",
+      "startDateRequired": "Startdatum ist erforderlich",
+      "endDateRequired": "Enddatum ist erforderlich",
+      "endDateBeforeStart": "Enddatum darf nicht vor dem Startdatum liegen"
+    }
+  },
+  "gantt": {
+    "today": "Heute",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "viewDay": "Tag",
+    "viewWeek": "Woche",
+    "viewMonth": "Monat",
+    "week": "Woche",
+    "export": "Exportieren",
+    "exportImage": "Bild exportieren",
+    "exportExcel": "Excel exportieren",
+    "exportImageSuccess": "Gantt-Bild erfolgreich exportiert",
+    "exportImageError": "Bilderexport fehlgeschlagen",
+    "exportExcelSuccess": "Excel erfolgreich exportiert",
+    "exportExcelError": "Excel-Export fehlgeschlagen",
+    "refreshRange": "Bereich aktualisieren"
+  },
+  "date": {
+    "weekdays": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+    "weekdaysFull": [
+      "Sonntag",
+      "Montag",
+      "Dienstag",
+      "Mittwoch",
+      "Donnerstag",
+      "Freitag",
+      "Samstag"
+    ],
+    "months": [
+      "Jan",
+      "Feb",
+      "Mär",
+      "Apr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dez"
+    ],
+    "monthsFull": [
+      "Januar",
+      "Februar",
+      "März",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "Dezember"
+    ]
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "search": "Suchen",
+    "loading": "Wird geladen...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "close": "Schließen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "imageUpload": {
+    "upload": "Hochladen",
+    "replace": "Ersetzen",
+    "hint": "Optional. Max 512x512, 2MB",
+    "error": {
+      "type": "Ungültiger Dateityp. Erlaubt: {{types}}",
+      "size": "Datei zu groß. Maximale Größe: {{size}}",
+      "dimension": "Bild zu groß. Max: {{width}}x{{height}}px",
+      "invalid": "Ungültige Bilddatei",
+      "read": "Fehler beim Lesen der Datei"
+    }
+  },
+  "emptyProjects": {
+    "ganttCharts": "Gantt-Diagramme",
+    "taskTracking": "Aufgabenverfolgung",
+    "visualTimeline": "Visuelle Zeitachse"
+  }
+}

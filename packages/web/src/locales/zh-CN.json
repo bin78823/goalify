@@ -39,6 +39,7 @@
     "active": "活跃",
     "tasks": "{{count, number}} 个任务",
     "noDescription": "暂无描述",
+    "noTasks": "暂无任务",
     "progress": "进度",
     "actions": {
       "edit": "编辑",
@@ -60,6 +61,11 @@
     "color": "颜色",
     "noTasks": "暂无任务",
     "duration": "天",
+    "status": {
+      "completed": "已完成",
+      "inProgress": "进行中",
+      "pending": "待开始"
+    },
     "validation": {
       "nameRequired": "请输入任务名称",
       "nameTooLong": "任务名称不能超过50个字符",

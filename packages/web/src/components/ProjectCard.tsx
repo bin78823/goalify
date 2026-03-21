@@ -15,6 +15,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
 } from "@goalify/ui";
 import {
   DropdownMenu,
@@ -171,21 +174,73 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
           <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]/50">
             <div className="flex items-center gap-2">
-              <div className="flex items-center -space-x-2">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-7 h-7 rounded-full border-2 border-[var(--card)] bg-gradient-to-br from-[var(--secondary)] to-[var(--muted-foreground)]/20 flex items-center justify-center text-[9px] font-bold text-[var(--muted-foreground)]"
-                  >
-                    {String.fromCharCode(64 + i)}
-                  </div>
-                ))}
-                {project.tasks.length > 3 && (
-                  <div className="w-7 h-7 rounded-full border-2 border-[var(--card)] bg-[var(--vibrant-blue)]/10 flex items-center justify-center text-[9px] font-bold text-[var(--vibrant-blue)]">
-                    +{project.tasks.length - 3}
-                  </div>
-                )}
-              </div>
+              {project.tasks.length > 0 ? (
+                <div className="flex items-center gap-1.5">
+                  {(() => {
+                    const completed = project.tasks.filter(
+                      (t) => t.progress >= 100,
+                    ).length;
+                    const inProgress = project.tasks.filter(
+                      (t) => t.progress > 0 && t.progress < 100,
+                    ).length;
+                    const pending = project.tasks.filter(
+                      (t) => t.progress === 0,
+                    ).length;
+                    const statusItems = [
+                      {
+                        count: completed,
+                        dot: "bg-emerald-500",
+                        bg: "bg-emerald-500/10",
+                        text: "text-emerald-600 dark:text-emerald-400",
+                        label: t("task.status.completed"),
+                      },
+                      {
+                        count: inProgress,
+                        dot: "bg-blue-500",
+                        bg: "bg-blue-500/10",
+                        text: "text-blue-600 dark:text-blue-400",
+                        label: t("task.status.inProgress"),
+                      },
+                      {
+                        count: pending,
+                        dot: "bg-slate-400 dark:bg-slate-500",
+                        bg: "bg-slate-400/10 dark:bg-slate-500/10",
+                        text: "text-slate-500 dark:text-slate-400",
+                        label: t("task.status.pending"),
+                      },
+                    ].filter((s) => s.count > 0);
+
+                    return statusItems.map((status, i) => (
+                      <Tooltip key={i}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg ${status.bg} transition-all duration-200 hover:scale-105 cursor-default`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${status.dot} ${status.label === t("task.status.inProgress") ? "animate-pulse" : ""}`}
+                            />
+                            <span
+                              className={`text-[10px] font-semibold ${status.text}`}
+                            >
+                              {status.count}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" sideOffset={6}>
+                          <span className="text-xs">{status.label}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    ));
+                  })()}
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 border-dashed border-[var(--muted-foreground)]/20 bg-[var(--secondary)]/30">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--muted-foreground)]/30" />
+                  <span className="text-[10px] font-medium text-[var(--muted-foreground)]/50">
+                    {t("project.noTasks")}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {completedTasks > 0 && (

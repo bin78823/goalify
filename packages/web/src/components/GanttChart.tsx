@@ -97,6 +97,11 @@ const GanttChart: React.FC<GanttChartProps> = ({
   } = useDateFormatter();
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
+  const isDraggingRef = useRef(false);
+  const isResizingRef = useRef<{
+    taskId: string;
+    edge: "left" | "right";
+  } | null>(null);
   const taskBarRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState<number>(0);
@@ -142,6 +147,8 @@ const GanttChart: React.FC<GanttChartProps> = ({
     const target = e.currentTarget as HTMLElement;
     target.setPointerCapture(e.pointerId);
 
+    isDraggingRef.current = true;
+
     setDragState({
       taskId: task.id,
       startX: e.clientX,
@@ -181,6 +188,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
         onDragUpdate(dragState.taskId, dragState.currentDelta);
       }
 
+      isDraggingRef.current = false;
       setDragState(null);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
@@ -196,6 +204,8 @@ const GanttChart: React.FC<GanttChartProps> = ({
 
       const target = e.currentTarget as HTMLElement;
       target.setPointerCapture(e.pointerId);
+
+      isResizingRef.current = { taskId: task.id, edge };
 
       setResizeState({
         taskId: task.id,
@@ -243,6 +253,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
         );
       }
 
+      isResizingRef.current = null;
       setResizeState(null);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
@@ -278,18 +289,15 @@ const GanttChart: React.FC<GanttChartProps> = ({
   ): { left?: number; width?: number } | null => {
     if (resizeState?.taskId !== task.id) return null;
 
-    const duration = Math.ceil(
-      (task.endDate.getTime() - task.startDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-
     if (resizeState.edge === "right") {
       const newEnd = new Date(task.endDate);
       newEnd.setDate(newEnd.getDate() + resizeState.currentDelta);
       if (newEnd > task.startDate) {
-        const newDuration = Math.ceil(
-          (newEnd.getTime() - task.startDate.getTime()) / (1000 * 60 * 60 * 24),
-        );
+        const newDuration =
+          Math.floor(
+            (newEnd.getTime() - task.startDate.getTime()) /
+              (1000 * 60 * 60 * 24),
+          ) + 1;
         return { width: newDuration * dayWidth };
       }
     } else {
@@ -298,9 +306,11 @@ const GanttChart: React.FC<GanttChartProps> = ({
       if (newStart < task.endDate) {
         const { left } = getPositionAndWidth(task);
         const newLeft = left + resizeState.currentDelta * dayWidth;
-        const newDuration = Math.ceil(
-          (task.endDate.getTime() - newStart.getTime()) / (1000 * 60 * 60 * 24),
-        );
+        const newDuration =
+          Math.floor(
+            (task.endDate.getTime() - newStart.getTime()) /
+              (1000 * 60 * 60 * 24),
+          ) + 1;
         return { left: newLeft + 2, width: newDuration * dayWidth };
       }
     }
@@ -438,7 +448,11 @@ const GanttChart: React.FC<GanttChartProps> = ({
                 onPointerCancel={isDragging ? handlePointerUp : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (!hasDragged) {
+                  if (
+                    !hasDragged &&
+                    !isDraggingRef.current &&
+                    !isResizingRef.current
+                  ) {
                     onTaskClick(task);
                   }
                 }}
@@ -470,16 +484,19 @@ const GanttChart: React.FC<GanttChartProps> = ({
                   <div
                     className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30 hover:bg-white/50 rounded-l-xl"
                     style={{ touchAction: "none" }}
-                    onPointerDown={(e) =>
-                      handleResizePointerDown(e, task, "left")
-                    }
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      handleResizePointerDown(e, task, "left");
+                    }}
                     onPointerMove={
-                      isResizing && resizeState?.edge === "left"
+                      isResizingRef.current?.taskId === task.id &&
+                      isResizingRef.current?.edge === "left"
                         ? handleResizePointerMove
                         : undefined
                     }
                     onPointerUp={
-                      isResizing && resizeState?.edge === "left"
+                      isResizingRef.current?.taskId === task.id &&
+                      isResizingRef.current?.edge === "left"
                         ? handleResizePointerUp
                         : undefined
                     }
@@ -487,16 +504,19 @@ const GanttChart: React.FC<GanttChartProps> = ({
                   <div
                     className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30 hover:bg-white/50 rounded-r-xl"
                     style={{ touchAction: "none" }}
-                    onPointerDown={(e) =>
-                      handleResizePointerDown(e, task, "right")
-                    }
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      handleResizePointerDown(e, task, "right");
+                    }}
                     onPointerMove={
-                      isResizing && resizeState?.edge === "right"
+                      isResizingRef.current?.taskId === task.id &&
+                      isResizingRef.current?.edge === "right"
                         ? handleResizePointerMove
                         : undefined
                     }
                     onPointerUp={
-                      isResizing && resizeState?.edge === "right"
+                      isResizingRef.current?.taskId === task.id &&
+                      isResizingRef.current?.edge === "right"
                         ? handleResizePointerUp
                         : undefined
                     }
@@ -517,9 +537,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
                 </div>
                 <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
                   <Calendar className="w-3.5 h-3.5 text-[var(--vibrant-blue)]" />
-                  <span>
-                    {formatDateRange(task.startDate, task.endDate)}
-                  </span>
+                  <span>{formatDateRange(task.startDate, task.endDate)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-[var(--secondary)] rounded-full overflow-hidden">

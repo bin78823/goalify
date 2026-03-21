@@ -1,11 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { format, getISOWeek } from "date-fns";
-import { enUS, zhCN, zhTW } from "date-fns/locale";
+import { enUS, zhCN, zhTW, ja, de, fr } from "date-fns/locale";
 
 const localeMap: Record<string, any> = {
   en: enUS,
   "zh-CN": zhCN,
   "zh-TW": zhTW,
+  ja,
+  de,
+  fr,
 };
 
 export function useDateFormatter() {
@@ -18,7 +21,9 @@ export function useDateFormatter() {
      */
     formatMonth: (date: Date) => {
       // 中文习惯: 2024年3月; 英文习惯: March 2024
-      const pattern = i18n.language.startsWith("zh") ? "yyyy年M月" : "MMMM yyyy";
+      const pattern = i18n.language.startsWith("zh")
+        ? "yyyy年M月"
+        : "MMMM yyyy";
       return format(date, pattern, { locale: currentLocale });
     },
 
@@ -54,7 +59,10 @@ export function useDateFormatter() {
     /**
      * 格式化日期范围
      */
-    formatDateRange: (start: Date | string | number, end: Date | string | number) => {
+    formatDateRange: (
+      start: Date | string | number,
+      end: Date | string | number,
+    ) => {
       const s = new Date(start);
       const e = new Date(end);
       return `${format(s, "P", { locale: currentLocale })} → ${format(e, "P", { locale: currentLocale })}`;

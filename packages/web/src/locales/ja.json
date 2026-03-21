@@ -1,0 +1,169 @@
+{
+  "app": {
+    "name": "Goalify",
+    "description": "Ganttタスクマネージャー",
+    "tagline": "プロジェクト管理"
+  },
+  "nav": {
+    "projects": "プロジェクト",
+    "settings": "設定"
+  },
+  "tab": {
+    "home": "プロジェクト",
+    "closeTab": "タブを閉じる",
+    "newTab": "新しいタブ"
+  },
+  "project": {
+    "title": "プロジェクト",
+    "create": "新規プロジェクト",
+    "edit": "プロジェクトを編集",
+    "editDescription": "以下のプロジェクト詳細を更新してください。",
+    "delete": "プロジェクトを削除",
+    "deleteConfirm": "「{{name}}」を削除してもよろしいですか？この操作は元に戻せず、すべてのタスクが削除されます。",
+    "name": "プロジェクト名",
+    "description": "説明",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "icon": "プロジェクトアイコン",
+    "validation": {
+      "nameRequired": "プロジェクト名は必須です",
+      "nameTooLong": "プロジェクト名は50文字以内にしてください",
+      "startDateRequired": "開始日は必須です",
+      "endDateRequired": "終了日は必須です",
+      "endDateBeforeStart": "終了日は開始日より後にしてください"
+    },
+    "noProjects": "プロジェクトがありません",
+    "createFirst": "最初のプロジェクトを作成して始めましょう",
+    "emptyHint": "最初のプロジェクトを作成して、直感的なガanttチャートでタスクを整理し、進捗を追跡しましょう。",
+    "manageHint": "視覚的なタイムラインとタスク管理で{{count}}個のプロジェクトを管理・追跡します。",
+    "active": "アクティブ",
+    "tasks": "{{count}}件のタスク",
+    "noDescription": "説明がありません。",
+    "noTasks": "タスクなし",
+    "progress": "進捗",
+    "actions": {
+      "edit": "編集",
+      "delete": "削除"
+    }
+  },
+  "task": {
+    "title": "タスク",
+    "create": "新規タスク",
+    "edit": "タスクを編集",
+    "delete": "タスクを削除",
+    "name": "タスク名",
+    "description": "説明",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "progress": "進捗",
+    "dependencies": "依存関係",
+    "milestone": "マイルストーン",
+    "color": "色",
+    "noTasks": "タスクがありません",
+    "duration": "日",
+    "status": {
+      "completed": "完了",
+      "inProgress": "進行中",
+      "pending": "未着手"
+    },
+    "validation": {
+      "nameRequired": "タスク名は必須です",
+      "nameTooLong": "タスク名は50文字以内にしてください",
+      "startDateRequired": "開始日は必須です",
+      "endDateRequired": "終了日は必須です",
+      "endDateBeforeStart": "終了日は開始日より後にしてください"
+    }
+  },
+  "gantt": {
+    "today": "今日",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "viewDay": "日",
+    "viewWeek": "週",
+    "viewMonth": "月",
+    "week": "週",
+    "export": "エクスポート",
+    "exportImage": "画像をエクスポート",
+    "exportExcel": "Excelをエクスポート",
+    "exportImageSuccess": "ガント画像を正常にエクスポートしました",
+    "exportImageError": "画像のエクスポートに失敗しました",
+    "exportExcelSuccess": "Excelを正常にエクスポートしました",
+    "exportExcelError": "Excelのエクスポートに失敗しました",
+    "refreshRange": "範囲を更新"
+  },
+  "date": {
+    "weekdays": ["日", "月", "火", "水", "木", "金", "土"],
+    "weekdaysFull": [
+      "日曜日",
+      "月曜日",
+      "火曜日",
+      "水曜日",
+      "木曜日",
+      "金曜日",
+      "土曜日"
+    ],
+    "months": [
+      "1月",
+      "2月",
+      "3月",
+      "4月",
+      "5月",
+      "6月",
+      "7月",
+      "8月",
+      "9月",
+      "10月",
+      "11月",
+      "12月"
+    ],
+    "monthsFull": [
+      "1月",
+      "2月",
+      "3月",
+      "4月",
+      "5月",
+      "6月",
+      "7月",
+      "8月",
+      "9月",
+      "10月",
+      "11月",
+      "12月"
+    ]
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "confirm": "確認",
+    "search": "検索",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "close": "閉じる"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "light": "ライト",
+    "dark": "ダーク"
+  },
+  "imageUpload": {
+    "upload": "アップロード",
+    "replace": "置換",
+    "hint": "任意。最大512x512、2MB",
+    "error": {
+      "type": "無効なファイル形式です。許可: {{types}}",
+      "size": "ファイルが大きすぎます。最大サイズ: {{size}}",
+      "dimension": "画像が大きすぎます。最大: {{width}}x{{height}}px",
+      "invalid": "無効な画像ファイルです",
+      "read": "ファイルの読み込みに失敗しました"
+    }
+  },
+  "emptyProjects": {
+    "ganttCharts": "ガントチャート",
+    "taskTracking": "タスク追跡",
+    "visualTimeline": "視覚的タイムライン"
+  }
+}

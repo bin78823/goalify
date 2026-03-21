@@ -1,0 +1,169 @@
+{
+  "app": {
+    "name": "Goalify",
+    "description": "Gestionnaire de tâches Gantt",
+    "tagline": "Gestion de projet"
+  },
+  "nav": {
+    "projects": "Projets",
+    "settings": "Paramètres"
+  },
+  "tab": {
+    "home": "Projets",
+    "closeTab": "Fermer l'onglet",
+    "newTab": "Nouvel onglet"
+  },
+  "project": {
+    "title": "Projets",
+    "create": "Nouveau projet",
+    "edit": "Modifier le projet",
+    "editDescription": "Mettez à jour les détails de votre projet ci-dessous.",
+    "delete": "Supprimer le projet",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible et toutes les tâches seront supprimées.",
+    "name": "Nom du projet",
+    "description": "Description",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "icon": "Icône du projet",
+    "validation": {
+      "nameRequired": "Le nom du projet est requis",
+      "nameTooLong": "Le nom du projet doit comporter 50 caractères ou moins",
+      "startDateRequired": "La date de début est requise",
+      "endDateRequired": "La date de fin est requise",
+      "endDateBeforeStart": "La date de fin ne peut pas être antérieure à la date de début"
+    },
+    "noProjects": "Aucun projet pour le moment",
+    "createFirst": "Créez votre premier projet pour commencer",
+    "emptyHint": "Créez votre premier projet pour commencer à organiser vos tâches et suivre vos progrès avec une interface de diagramme de Gantt intuitive.",
+    "manageHint": "Gérez et suivez {{count}} projets avec des chronologies visuelles et une gestion des tâches.",
+    "active": "actif",
+    "tasks": "{{count}} tâches",
+    "noDescription": "Aucune description fournie.",
+    "noTasks": "Aucune tâche",
+    "progress": "Progrès",
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    }
+  },
+  "task": {
+    "title": "Tâches",
+    "create": "Nouvelle tâche",
+    "edit": "Modifier la tâche",
+    "delete": "Supprimer la tâche",
+    "name": "Nom de la tâche",
+    "description": "Description",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "progress": "Progrès",
+    "dependencies": "Dépendances",
+    "milestone": "Jalon",
+    "color": "Couleur",
+    "noTasks": "Aucune tâche pour le moment",
+    "duration": "jours",
+    "status": {
+      "completed": "Terminé",
+      "inProgress": "En cours",
+      "pending": "En attente"
+    },
+    "validation": {
+      "nameRequired": "Le nom de la tâche est requis",
+      "nameTooLong": "Le nom de la tâche doit comporter 50 caractères ou moins",
+      "startDateRequired": "La date de début est requise",
+      "endDateRequired": "La date de fin est requise",
+      "endDateBeforeStart": "La date de fin ne peut pas être antérieure à la date de début"
+    }
+  },
+  "gantt": {
+    "today": "Aujourd'hui",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "viewDay": "Jour",
+    "viewWeek": "Semaine",
+    "viewMonth": "Mois",
+    "week": "Semaine",
+    "export": "Exporter",
+    "exportImage": "Exporter l'image",
+    "exportExcel": "Exporter Excel",
+    "exportImageSuccess": "Image Gantt exportée avec succès",
+    "exportImageError": "Échec de l'exportation de l'image",
+    "exportExcelSuccess": "Excel exporté avec succès",
+    "exportExcelError": "Échec de l'exportation Excel",
+    "refreshRange": "Actualiser la plage"
+  },
+  "date": {
+    "weekdays": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+    "weekdaysFull": [
+      "Dimanche",
+      "Lundi",
+      "Mardi",
+      "Mercredi",
+      "Jeudi",
+      "Vendredi",
+      "Samedi"
+    ],
+    "months": [
+      "Jan",
+      "Fév",
+      "Mar",
+      "Avr",
+      "Mai",
+      "Juin",
+      "Juil",
+      "Août",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Déc"
+    ],
+    "monthsFull": [
+      "Janvier",
+      "Février",
+      "Mars",
+      "Avril",
+      "Mai",
+      "Juin",
+      "Juillet",
+      "Août",
+      "Septembre",
+      "Octobre",
+      "Novembre",
+      "Décembre"
+    ]
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "close": "Fermer"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "imageUpload": {
+    "upload": "Téléverser",
+    "replace": "Remplacer",
+    "hint": "Optionnel. Max 512x512, 2 Mo",
+    "error": {
+      "type": "Type de fichier invalide. Autorisé : {{types}}",
+      "size": "Fichier trop volumineux. Taille max : {{size}}",
+      "dimension": "Image trop grande. Max : {{width}}x{{height}}px",
+      "invalid": "Fichier image invalide",
+      "read": "Échec de la lecture du fichier"
+    }
+  },
+  "emptyProjects": {
+    "ganttCharts": "Diagrammes de Gantt",
+    "taskTracking": "Suivi des tâches",
+    "visualTimeline": "Chronologie visuelle"
+  }
+}
