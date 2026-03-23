@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Calendar } from "lucide-react";
+import { Calendar, ListTodo } from "lucide-react";
 import { Button } from "@goalify/ui";
+import type { SubtaskCounts } from "../stores/SubtaskStore";
+import { useSubtaskStore } from "../stores/SubtaskStore";
 import {
   Drawer,
   DrawerContent,
@@ -21,7 +23,15 @@ interface TaskDetailDrawerProps {
   onClose: () => void;
   onUpdate: (taskId: string, updates: Partial<Task>) => void;
   onDelete: (taskId: string) => void;
+  subtaskCounts?: SubtaskCounts;
+  onSubtaskOpen?: (task: Task) => void;
 }
+
+const defaultCounts = (): SubtaskCounts => ({
+  todo: 0,
+  in_progress: 0,
+  done: 0,
+});
 
 const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   task,
@@ -29,15 +39,29 @@ const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   onClose,
   onUpdate,
   onDelete,
+  subtaskCounts,
+  onSubtaskOpen,
 }) => {
   const { t, i18n } = useTranslation();
   const [name, setName] = useState("");
+  const { loadCountsByParent, getCountsForParent } = useSubtaskStore();
+
+  useEffect(() => {
+    if (task && isOpen) {
+      loadCountsByParent([task.id]);
+    }
+  }, [task?.id, isOpen, loadCountsByParent]);
 
   useEffect(() => {
     if (task) {
       setName(task.name);
     }
   }, [task?.id, task?.name]);
+
+  const counts =
+    task && isOpen
+      ? getCountsForParent(task.id)
+      : subtaskCounts || defaultCounts();
 
   const handleNameBlur = () => {
     if (task && name.trim() && name.trim() !== task.name) {
@@ -180,6 +204,60 @@ const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                     />
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[var(--muted-foreground)] text-xs font-bold uppercase tracking-wider">
+                  {t("kanban.subtasks")}
+                </p>
+                <button
+                  onClick={() => onSubtaskOpen?.(task)}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl
+                           bg-gradient-to-r from-[var(--secondary)]/50 to-[var(--secondary)]/30
+                           hover:from-[var(--secondary)]/70 hover:to-[var(--secondary)]/50
+                           transition-all duration-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                      <ListTodo className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-[var(--foreground)]">
+                        {t("kanban.manageSubtasks")}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-[var(--muted-foreground)]">
+                          {counts.todo} {t("kanban.todo")}
+                        </span>
+                        <span className="text-[var(--muted-foreground)]">
+                          ·
+                        </span>
+                        <span className="text-[#3b82f6]">
+                          {counts.in_progress} {t("kanban.inProgress")}
+                        </span>
+                        <span className="text-[var(--muted-foreground)]">
+                          ·
+                        </span>
+                        <span className="text-[#22c55e]">
+                          {counts.done} {t("kanban.done")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <svg
+                    className="w-5 h-5 text-[var(--muted-foreground)] group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
               </div>
             </>
           )}

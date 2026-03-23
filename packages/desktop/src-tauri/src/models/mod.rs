@@ -73,3 +73,33 @@ pub struct UpdateTaskRequest {
     pub is_milestone: Option<bool>,
     pub color: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Subtask {
+    pub id: String,
+    pub parent_id: String,
+    pub name: String,
+    pub description: String,
+    pub status: String,
+    pub order_index: i32,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateSubtaskRequest {
+    pub parent_id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub status: Option<String>,
+    pub order_index: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateSubtaskRequest {
+    pub id: String,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub status: Option<String>,
+    pub order_index: Option<i32>,
+}

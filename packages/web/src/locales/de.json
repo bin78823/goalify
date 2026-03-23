@@ -91,6 +91,27 @@
     "exportExcelError": "Excel-Export fehlgeschlagen",
     "refreshRange": "Bereich aktualisieren"
   },
+  "kanban": {
+    "todo": "Zu erledigen",
+    "inProgress": "In Bearbeitung",
+    "done": "Erledigt",
+    "addTask": "Unteraufgabe hinzufügen",
+    "deleteConfirm": "Diese Aufgabe löschen?",
+    "subtasks": "Unteraufgaben",
+    "manageSubtasks": "Unteraufgaben verwalten",
+    "noTasks": "Noch keine Aufgaben",
+    "addATask": "Unteraufgabe hinzufügen",
+    "newTask": "Neue Unteraufgabe",
+    "addingTo": "Hinzufügen zu",
+    "placeholder": "Was muss erledigt werden?",
+    "cancel": "Abbrechen",
+    "dragToReorder": "Zum Neuordnen ziehen",
+    "markAsIncomplete": "Als unvollständig markieren",
+    "markAsComplete": "Als erledigt markieren",
+    "editTaskName": "Aufgabenname bearbeiten:",
+    "editTask": "Aufgabe bearbeiten",
+    "deleteTask": "Aufgabe löschen"
+  },
   "date": {
     "weekdays": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
     "weekdaysFull": [

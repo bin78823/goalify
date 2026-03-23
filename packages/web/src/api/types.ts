@@ -65,3 +65,32 @@ export interface UpdateTaskRequest {
   is_milestone?: boolean;
   color?: string;
 }
+
+export type SubtaskStatus = "todo" | "in_progress" | "done";
+
+export interface Subtask {
+  id: string;
+  parent_id: string;
+  name: string;
+  description: string;
+  status: SubtaskStatus;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateSubtaskRequest {
+  parent_id: string;
+  name: string;
+  description?: string;
+  status?: SubtaskStatus;
+  order_index?: number;
+}
+
+export interface UpdateSubtaskRequest {
+  id: string;
+  name?: string;
+  description?: string;
+  status?: SubtaskStatus;
+  order_index?: number;
+}

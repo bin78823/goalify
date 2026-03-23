@@ -91,6 +91,27 @@
     "exportExcelError": "Excel匯出失敗",
     "refreshRange": "重新整理日期範圍"
   },
+  "kanban": {
+    "todo": "待辦",
+    "inProgress": "進行中",
+    "done": "已完成",
+    "addTask": "新增子任務",
+    "deleteConfirm": "確定刪除此任務？",
+    "subtasks": "子任務",
+    "manageSubtasks": "管理子任務",
+    "noTasks": "暫無任務",
+    "addATask": "新增子任務",
+    "newTask": "新子任務",
+    "addingTo": "新增至",
+    "placeholder": "需要完成什麼？",
+    "cancel": "取消",
+    "dragToReorder": "拖曳排序",
+    "markAsIncomplete": "標記為未完成",
+    "markAsComplete": "標記為已完成",
+    "editTaskName": "編輯任務名稱：",
+    "editTask": "編輯任務",
+    "deleteTask": "刪除任務"
+  },
   "date": {
     "weekdays": ["日", "一", "二", "三", "四", "五", "六"],
     "weekdaysFull": [

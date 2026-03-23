@@ -91,6 +91,27 @@
     "exportExcelError": "Excelのエクスポートに失敗しました",
     "refreshRange": "範囲を更新"
   },
+  "kanban": {
+    "todo": "未着手",
+    "inProgress": "進行中",
+    "done": "完了",
+    "addTask": "サブタスクを追加",
+    "deleteConfirm": "このタスクを削除しますか？",
+    "subtasks": "サブタスク",
+    "manageSubtasks": "サブタスクを管理",
+    "noTasks": "タスクがありません",
+    "addATask": "サブタスクを追加",
+    "newTask": "新しいサブタスク",
+    "addingTo": "追加先:",
+    "placeholder": "何をする必要がありますか？",
+    "cancel": "キャンセル",
+    "dragToReorder": "ドラッグして並べ替え",
+    "markAsIncomplete": "未完了としてマーク",
+    "markAsComplete": "完了としてマーク",
+    "editTaskName": "タスク名を変更:",
+    "editTask": "タスクを編集",
+    "deleteTask": "タスクを削除"
+  },
   "date": {
     "weekdays": ["日", "月", "火", "水", "木", "金", "土"],
     "weekdaysFull": [

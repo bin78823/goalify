@@ -242,8 +242,10 @@ const Layout: React.FC = () => {
         </header>
 
         {/* 主内容区 */}
-        <main className="flex-1 overflow-auto p-6 bg-[var(--background)]">
-          <Outlet />
+        <main className="flex-1 overflow-auto bg-[var(--background)]">
+          <div className="p-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     );
@@ -293,7 +295,7 @@ const Layout: React.FC = () => {
           </div>
         </div>
       </header>
-      <main className="p-6">
+      <main className="p-6 bg-[var(--background)]">
         <Outlet />
       </main>
     </div>

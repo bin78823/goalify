@@ -91,6 +91,27 @@
     "exportExcelError": "Excel导出失败",
     "refreshRange": "刷新日期范围"
   },
+  "kanban": {
+    "todo": "待办",
+    "inProgress": "进行中",
+    "done": "已完成",
+    "addTask": "添加子任务",
+    "deleteConfirm": "确定删除此任务？",
+    "subtasks": "子任务",
+    "manageSubtasks": "管理子任务",
+    "noTasks": "暂无任务",
+    "addATask": "添加子任务",
+    "newTask": "新子任务",
+    "addingTo": "添加到",
+    "placeholder": "需要完成什么？",
+    "cancel": "取消",
+    "dragToReorder": "拖动排序",
+    "markAsIncomplete": "标记为未完成",
+    "markAsComplete": "标记为完成",
+    "editTaskName": "编辑任务名称：",
+    "editTask": "编辑任务",
+    "deleteTask": "删除任务"
+  },
   "date": {
     "weekdays": ["日", "一", "二", "三", "四", "五", "六"],
     "weekdaysFull": [

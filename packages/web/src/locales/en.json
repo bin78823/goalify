@@ -91,6 +91,27 @@
     "exportExcelError": "Failed to export Excel",
     "refreshRange": "Refresh range"
   },
+  "kanban": {
+    "todo": "To Do",
+    "inProgress": "In Progress",
+    "done": "Done",
+    "addTask": "Add Subtask",
+    "deleteConfirm": "Delete this task?",
+    "subtasks": "Subtasks",
+    "manageSubtasks": "Manage Subtasks",
+    "noTasks": "No tasks yet",
+    "addATask": "Add a subtask",
+    "newTask": "New Subtask",
+    "addingTo": "Adding to",
+    "placeholder": "What needs to be done?",
+    "cancel": "Cancel",
+    "dragToReorder": "Drag to reorder",
+    "markAsIncomplete": "Mark as incomplete",
+    "markAsComplete": "Mark as complete",
+    "editTaskName": "Edit task name:",
+    "editTask": "Edit task",
+    "deleteTask": "Delete task"
+  },
   "date": {
     "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "weekdaysFull": [

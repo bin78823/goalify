@@ -426,81 +426,82 @@ const GanttChart: React.FC<GanttChartProps> = ({
         const resizeStyle = getResizeStyle(task);
 
         return (
-          <Tooltip key={task.id}>
-            <TooltipTrigger asChild>
+          <div
+            key={task.id}
+            ref={(el) => {
+              if (el) taskBarRefs.current.set(task.id, el);
+            }}
+            className={`absolute h-12 flex items-center group ${isDragging || isResizing ? "z-30" : "z-10"} ${isSelected ? "z-20" : "hover:z-25"}`}
+            style={{
+              left: resizeStyle?.left ?? left + 2 + dragTransform,
+              width: resizeStyle?.width ?? width,
+              top: index * 56 + 8,
+              opacity: isDragging || isResizing ? 0.8 : 1,
+              cursor: isDragging ? "grabbing" : "grab",
+              userSelect: "none",
+              touchAction: "none",
+            }}
+            onPointerDown={(e) => handlePointerDown(e, task)}
+            onPointerMove={isDragging ? handlePointerMove : undefined}
+            onPointerUp={isDragging ? handlePointerUp : undefined}
+            onPointerCancel={isDragging ? handlePointerUp : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (
+                !hasDragged &&
+                !isDraggingRef.current &&
+                !isResizingRef.current
+              ) {
+                onTaskClick(task);
+              }
+            }}
+          >
+            <div
+              className={`relative w-full h-9 rounded-xl overflow-hidden border border-white/10 shadow-lg ${isSelected ? "ring-4 ring-offset-2 ring-offset-[var(--background)] ring-[var(--ring)] scale-[1.02]" : "hover:scale-[1.01] hover:shadow-xl"}`}
+              style={{
+                background:
+                  TASK_COLORS.find((c) => c.primary === task.color)?.gradient ||
+                  task.color,
+              }}
+            >
               <div
-                ref={(el) => {
-                  if (el) taskBarRefs.current.set(task.id, el);
-                }}
-                className={`absolute h-12 flex items-center group ${isDragging || isResizing ? "z-30" : "z-10"} ${isSelected ? "z-20" : "hover:z-25"}`}
+                className="absolute inset-0 bg-black/40"
                 style={{
-                  left: resizeStyle?.left ?? left + 2 + dragTransform,
-                  width: resizeStyle?.width ?? width,
-                  top: index * 56 + 8,
-                  opacity: isDragging || isResizing ? 0.8 : 1,
-                  cursor: isDragging ? "grabbing" : "grab",
-                  userSelect: "none",
-                  touchAction: "none",
+                  width: `${100 - task.progress}%`,
+                  right: 0,
+                  left: "auto",
                 }}
-                onPointerDown={(e) => handlePointerDown(e, task)}
-                onPointerMove={isDragging ? handlePointerMove : undefined}
-                onPointerUp={isDragging ? handlePointerUp : undefined}
-                onPointerCancel={isDragging ? handlePointerUp : undefined}
-                onClick={(e) => {
+              />
+              <div className="absolute inset-0 flex items-center pl-3 pr-16 justify-between">
+                <span className="text-xs font-black text-white truncate drop-shadow-md tracking-tight uppercase">
+                  {task.name}
+                </span>
+                <span className="text-[10px] font-bold text-white/90 drop-shadow-md">
+                  {task.progress}%
+                </span>
+              </div>
+              <div
+                className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30 hover:bg-white/50 rounded-l-xl"
+                style={{ touchAction: "none" }}
+                onPointerDown={(e) => {
                   e.stopPropagation();
-                  if (
-                    !hasDragged &&
-                    !isDraggingRef.current &&
-                    !isResizingRef.current
-                  ) {
-                    onTaskClick(task);
-                  }
+                  handleResizePointerDown(e, task, "left");
                 }}
-              >
-                <div
-                  className={`relative w-full h-9 rounded-xl overflow-hidden border border-white/10 shadow-lg ${isSelected ? "ring-4 ring-offset-2 ring-offset-[var(--background)] ring-[var(--ring)] scale-[1.02]" : "hover:scale-[1.01] hover:shadow-xl"}`}
-                  style={{
-                    background:
-                      TASK_COLORS.find((c) => c.primary === task.color)
-                        ?.gradient || task.color,
-                  }}
-                >
-                  <div
-                    className="absolute inset-0 bg-black/40"
-                    style={{
-                      width: `${100 - task.progress}%`,
-                      right: 0,
-                      left: "auto",
-                    }}
-                  />
-                  <div className="absolute inset-0 flex items-center px-4 justify-between">
-                    <span className="text-xs font-black text-white truncate drop-shadow-md tracking-tight uppercase">
-                      {task.name}
-                    </span>
-                    <span className="text-[10px] font-bold text-white/90 drop-shadow-md">
-                      {task.progress}%
-                    </span>
-                  </div>
-                  <div
-                    className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30 hover:bg-white/50 rounded-l-xl"
-                    style={{ touchAction: "none" }}
-                    onPointerDown={(e) => {
-                      e.stopPropagation();
-                      handleResizePointerDown(e, task, "left");
-                    }}
-                    onPointerMove={
-                      isResizingRef.current?.taskId === task.id &&
-                      isResizingRef.current?.edge === "left"
-                        ? handleResizePointerMove
-                        : undefined
-                    }
-                    onPointerUp={
-                      isResizingRef.current?.taskId === task.id &&
-                      isResizingRef.current?.edge === "left"
-                        ? handleResizePointerUp
-                        : undefined
-                    }
-                  />
+                onPointerMove={
+                  isResizingRef.current?.taskId === task.id &&
+                  isResizingRef.current?.edge === "left"
+                    ? handleResizePointerMove
+                    : undefined
+                }
+                onPointerUp={
+                  isResizingRef.current?.taskId === task.id &&
+                  isResizingRef.current?.edge === "left"
+                    ? handleResizePointerUp
+                    : undefined
+                }
+              />
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <div
                     className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30 hover:bg-white/50 rounded-r-xl"
                     style={{ touchAction: "none" }}
@@ -521,41 +522,43 @@ const GanttChart: React.FC<GanttChartProps> = ({
                         : undefined
                     }
                   />
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={12}>
-              <div className="flex flex-col gap-1.5 p-1">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: task.color || "#64748b" }}
-                  />
-                  <span className="text-sm text-[var(--popover-foreground)] font-medium">
-                    {task.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-                  <Calendar className="w-3.5 h-3.5 text-[var(--vibrant-blue)]" />
-                  <span>{formatDateRange(task.startDate, task.endDate)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-[var(--secondary)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${task.progress}%`,
-                        backgroundColor: task.color || "#64748b",
-                      }}
-                    />
+                </TooltipTrigger>
+                <TooltipContent side="top" sideOffset={12}>
+                  <div className="flex flex-col gap-1.5 p-1">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: task.color || "#64748b" }}
+                      />
+                      <span className="text-sm text-[var(--popover-foreground)] font-medium">
+                        {task.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                      <Calendar className="w-3.5 h-3.5 text-[var(--vibrant-blue)]" />
+                      <span>
+                        {formatDateRange(task.startDate, task.endDate)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-[var(--secondary)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${task.progress}%`,
+                            backgroundColor: task.color || "#64748b",
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-[var(--muted-foreground)] min-w-[36px] text-right">
+                        {task.progress}%
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-xs font-semibold text-[var(--muted-foreground)] min-w-[36px] text-right">
-                    {task.progress}%
-                  </span>
-                </div>
-              </div>
-            </TooltipContent>
-          </Tooltip>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
         );
       })}
     </div>

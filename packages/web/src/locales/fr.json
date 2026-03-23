@@ -91,6 +91,27 @@
     "exportExcelError": "Échec de l'exportation Excel",
     "refreshRange": "Actualiser la plage"
   },
+  "kanban": {
+    "todo": "À faire",
+    "inProgress": "En cours",
+    "done": "Terminé",
+    "addTask": "Ajouter une sous-tâche",
+    "deleteConfirm": "Supprimer cette tâche ?",
+    "subtasks": "Sous-tâches",
+    "manageSubtasks": "Gérer les sous-tâches",
+    "noTasks": "Aucune tâche pour le moment",
+    "addATask": "Ajouter une sous-tâche",
+    "newTask": "Nouvelle sous-tâche",
+    "addingTo": "Ajouter à",
+    "placeholder": "Que doit être fait ?",
+    "cancel": "Annuler",
+    "dragToReorder": "Glisser pour réorganiser",
+    "markAsIncomplete": "Marquer comme non terminé",
+    "markAsComplete": "Marquer comme terminé",
+    "editTaskName": "Modifier le nom de la tâche :",
+    "editTask": "Modifier la tâche",
+    "deleteTask": "Supprimer la tâche"
+  },
   "date": {
     "weekdays": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
     "weekdaysFull": [

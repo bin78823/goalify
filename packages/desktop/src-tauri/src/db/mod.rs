@@ -1,4 +1,4 @@
-use crate::models::{Project, Task};
+use crate::models::{CreateSubtaskRequest, Project, Subtask, Task, UpdateSubtaskRequest};
 use rusqlite::{params, Connection, Result as SqliteResult};
 use std::sync::Mutex;
 
@@ -42,7 +42,22 @@ pub fn init_db() -> SqliteResult<Connection> {
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-        )",
+        );
+
+        CREATE TABLE IF NOT EXISTS subtasks (
+            id TEXT PRIMARY KEY,
+            parent_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            status TEXT DEFAULT 'todo',
+            order_index INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_subtasks_parent_id ON subtasks(parent_id);
+        CREATE INDEX IF NOT EXISTS idx_subtasks_status ON subtasks(status);",
     )?;
 
     Ok(conn)
@@ -341,5 +356,141 @@ pub fn update_task(
 
 pub fn delete_task(conn: &Connection, id: &str) -> SqliteResult<bool> {
     let rows_affected = conn.execute("DELETE FROM tasks WHERE id = ?1", params![id])?;
+    Ok(rows_affected > 0)
+}
+
+// ============ Subtask CRUD ============
+
+pub fn create_subtask(conn: &Connection, request: &CreateSubtaskRequest) -> SqliteResult<Subtask> {
+    let id = uuid::Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().to_rfc3339();
+    let status = request.status.as_deref().unwrap_or("todo");
+
+    let order_index = if let Some(idx) = request.order_index {
+        idx
+    } else {
+        let max_idx: Option<i32> = conn
+            .query_row(
+                "SELECT MAX(order_index) FROM subtasks WHERE parent_id = ?1 AND status = ?2",
+                params![request.parent_id, status],
+                |row| row.get(0),
+            )
+            .ok()
+            .flatten();
+        max_idx.unwrap_or(-1) + 1
+    };
+
+    conn.execute(
+        "INSERT INTO subtasks (id, parent_id, name, description, status, order_index, created_at, updated_at) 
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![
+            id,
+            request.parent_id,
+            request.name,
+            request.description.as_deref().unwrap_or(""),
+            status,
+            order_index,
+            now,
+            now
+        ],
+    )?;
+
+    Ok(Subtask {
+        id,
+        parent_id: request.parent_id.clone(),
+        name: request.name.clone(),
+        description: request.description.clone().unwrap_or_default(),
+        status: status.to_string(),
+        order_index,
+        created_at: now.clone(),
+        updated_at: now,
+    })
+}
+
+pub fn get_subtasks_by_parent(conn: &Connection, parent_id: &str) -> SqliteResult<Vec<Subtask>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, parent_id, name, description, status, order_index, created_at, updated_at 
+         FROM subtasks WHERE parent_id = ?1 
+         ORDER BY status, order_index",
+    )?;
+
+    let subtasks = stmt
+        .query_map(params![parent_id], |row| {
+            Ok(Subtask {
+                id: row.get(0)?,
+                parent_id: row.get(1)?,
+                name: row.get(2)?,
+                description: row.get(3)?,
+                status: row.get(4)?,
+                order_index: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(subtasks)
+}
+
+pub fn update_subtask(
+    conn: &Connection,
+    request: &UpdateSubtaskRequest,
+) -> SqliteResult<Option<Subtask>> {
+    let now = chrono::Utc::now().to_rfc3339();
+
+    if let Some(name) = &request.name {
+        conn.execute(
+            "UPDATE subtasks SET name = ?1, updated_at = ?2 WHERE id = ?3",
+            params![name, now, request.id],
+        )?;
+    }
+    if let Some(description) = &request.description {
+        conn.execute(
+            "UPDATE subtasks SET description = ?1, updated_at = ?2 WHERE id = ?3",
+            params![description, now, request.id],
+        )?;
+    }
+    if let Some(status) = &request.status {
+        conn.execute(
+            "UPDATE subtasks SET status = ?1, updated_at = ?2 WHERE id = ?3",
+            params![status, now, request.id],
+        )?;
+    }
+    if let Some(order_index) = request.order_index {
+        conn.execute(
+            "UPDATE subtasks SET order_index = ?1, updated_at = ?2 WHERE id = ?3",
+            params![order_index, now, request.id],
+        )?;
+    }
+
+    get_subtask_by_id(conn, &request.id)
+}
+
+pub fn get_subtask_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Subtask>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, parent_id, name, description, status, order_index, created_at, updated_at 
+         FROM subtasks WHERE id = ?1",
+    )?;
+
+    let mut rows = stmt.query(params![id])?;
+
+    if let Some(row) = rows.next()? {
+        Ok(Some(Subtask {
+            id: row.get(0)?,
+            parent_id: row.get(1)?,
+            name: row.get(2)?,
+            description: row.get(3)?,
+            status: row.get(4)?,
+            order_index: row.get(5)?,
+            created_at: row.get(6)?,
+            updated_at: row.get(7)?,
+        }))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn delete_subtask(conn: &Connection, id: &str) -> SqliteResult<bool> {
+    let rows_affected = conn.execute("DELETE FROM subtasks WHERE id = ?1", params![id])?;
     Ok(rows_affected > 0)
 }

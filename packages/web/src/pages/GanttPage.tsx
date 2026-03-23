@@ -13,6 +13,7 @@ import { exportGanttToExcel } from "../utils/excelExport";
 import CreateTaskDialog from "../components/CreateTaskDialog";
 import TaskDetailDrawer from "../components/TaskDetailDrawer";
 import { useDateFormatter } from "../hooks/useDateFormatter";
+import { useSubtaskStore } from "../stores/SubtaskStore";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -29,6 +30,7 @@ const GanttPage: React.FC = () => {
   } = useDateFormatter();
   const { projects, addTask, updateTask, deleteTask, reorderTasks } =
     useGanttStore();
+  const { countsByParent } = useSubtaskStore();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [leftPanelWidth, setLeftPanelWidth] = useState(320);
@@ -52,6 +54,14 @@ const GanttPage: React.FC = () => {
   const handleExportReady = useCallback(() => {
     exportReadyResolver.current?.();
   }, []);
+
+  const handleSubtaskOpen = useCallback(
+    (task: Task) => {
+      setDrawerTaskId(null);
+      navigate(`/subtask/${task.id}`);
+    },
+    [navigate],
+  );
 
   const project = projects.find((p) => p.id === projectId);
 
@@ -1024,6 +1034,8 @@ const GanttPage: React.FC = () => {
         onClose={() => setDrawerTaskId(null)}
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
+        subtaskCounts={drawerTask ? countsByParent[drawerTask.id] : undefined}
+        onSubtaskOpen={handleSubtaskOpen}
       />
 
       <div
