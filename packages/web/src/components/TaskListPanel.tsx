@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Calendar, GripVertical } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { Task } from "../contexts/GanttContext";
+import { useSubtaskStore } from "../stores/SubtaskStore";
 
 interface TaskListPanelProps {
   tasks: Task[];
@@ -36,7 +37,25 @@ const TaskListPanel: React.FC<TaskListPanelProps> = ({
   hasDragged,
 }) => {
   const { t } = useTranslation();
+  const { countsByParent, loadCountsByParent } = useSubtaskStore();
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // 加载所有任务的子任务统计
+  useEffect(() => {
+    if (tasks.length > 0) {
+      const taskIds = tasks.map((t) => t.id);
+      loadCountsByParent(taskIds);
+    }
+  }, [tasks, loadCountsByParent]);
+
+  // 根据子任务完成度计算进度
+  const getTaskProgress = useCallback((taskId: string): number => {
+    const counts = countsByParent[taskId];
+    if (!counts) return 0;
+    const total = counts.todo + counts.in_progress + counts.done;
+    if (total === 0) return 0;
+    return Math.round((counts.done / total) * 100);
+  }, [countsByParent]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -97,59 +116,16 @@ const TaskListPanel: React.FC<TaskListPanelProps> = ({
                 isSelected={selectedTaskId === task.id}
                 onClick={() => onTaskSelect(task)}
                 hasDragged={hasDragged}
+                getTaskProgress={getTaskProgress}
               />
             ))}
           </SortableContext>
           <DragOverlay>
             {activeTask ? (
-              <div
-                className="h-[56px] px-2 flex items-center gap-2 bg-[var(--accent)] border-l-[3px] shadow-xl rounded-md"
-                style={{
-                  borderLeftColor: activeTask.color || "#64748b",
-                }}
-              >
-                <button className="p-1 cursor-grabbing text-[var(--muted-foreground)]">
-                  <GripVertical className="w-4 h-4" />
-                </button>
-                <div
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2 ring-[var(--background)] shadow-sm"
-                  style={{
-                    backgroundColor: activeTask.color || "#64748b",
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-semibold truncate"
-                    style={{ color: activeTask.color || "#64748b" }}
-                  >
-                    {activeTask.name}
-                  </p>
-                  <p className="text-[10px] font-medium text-[var(--muted-foreground)]/80 mt-0.5">
-                    {Math.ceil(
-                      (new Date(activeTask.endDate).getTime() -
-                        new Date(activeTask.startDate).getTime()) /
-                        (1000 * 60 * 60 * 24),
-                    ) + 1}{" "}
-                    {t("task.duration")}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0 min-w-[52px]">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-10 h-1.5 bg-[var(--secondary)] rounded-full overflow-hidden ring-1 ring-[var(--border)]/50">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${activeTask.progress}%`,
-                          backgroundColor: activeTask.color || "#64748b",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--muted-foreground)]">
-                    {activeTask.progress}%
-                  </span>
-                </div>
-              </div>
+              <TaskDragOverlay
+                task={activeTask}
+                getTaskProgress={getTaskProgress}
+              />
             ) : null}
           </DragOverlay>
         </DndContext>
@@ -165,6 +141,7 @@ interface SortableTaskItemProps {
   isSelected: boolean;
   onClick: () => void;
   hasDragged: boolean;
+  getTaskProgress: (taskId: string) => number;
 }
 
 const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
@@ -174,11 +151,13 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   isSelected,
   onClick,
   hasDragged,
+  getTaskProgress,
 }) => {
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, isDragging } = useSortable({
     id: task.id,
   });
+  const progress = getTaskProgress(task.id);
 
   return (
     <div
@@ -234,7 +213,7 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{
-                width: `${task.progress}%`,
+                width: `${progress}%`,
                 backgroundColor: task.color || "#64748b",
                 boxShadow: "0 0 4px rgba(0,0,0,0.1)",
               }}
@@ -242,7 +221,72 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
           </div>
         </div>
         <span className="text-[10px] font-bold text-[var(--muted-foreground)]">
-          {task.progress}%
+          {progress}%
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// 拖拽时的覆盖层组件
+interface TaskDragOverlayProps {
+  task: Task;
+  getTaskProgress: (taskId: string) => number;
+}
+
+const TaskDragOverlay: React.FC<TaskDragOverlayProps> = ({
+  task,
+  getTaskProgress,
+}) => {
+  const { t } = useTranslation();
+  const progress = getTaskProgress(task.id);
+
+  return (
+    <div
+      className="h-[56px] px-2 flex items-center gap-2 bg-[var(--accent)] border-l-[3px] shadow-xl rounded-md"
+      style={{
+        borderLeftColor: task.color || "#64748b",
+      }}
+    >
+      <button className="p-1 cursor-grabbing text-[var(--muted-foreground)]">
+        <GripVertical className="w-4 h-4" />
+      </button>
+      <div
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2 ring-[var(--background)] shadow-sm"
+        style={{
+          backgroundColor: task.color || "#64748b",
+        }}
+      />
+      <div className="flex-1 min-w-0">
+        <p
+          className="text-sm font-semibold truncate"
+          style={{ color: task.color || "#64748b" }}
+        >
+          {task.name}
+        </p>
+        <p className="text-[10px] font-medium text-[var(--muted-foreground)]/80 mt-0.5">
+          {Math.ceil(
+            (new Date(task.endDate).getTime() -
+              new Date(task.startDate).getTime()) /
+              (1000 * 60 * 60 * 24),
+          ) + 1}{" "}
+          {t("task.duration")}
+        </p>
+      </div>
+      <div className="flex flex-col items-end gap-1 shrink-0 min-w-[52px]">
+        <div className="flex items-center gap-1.5">
+          <div className="w-10 h-1.5 bg-[var(--secondary)] rounded-full overflow-hidden ring-1 ring-[var(--border)]/50">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: task.color || "#64748b",
+              }}
+            />
+          </div>
+        </div>
+        <span className="text-[10px] font-bold text-[var(--muted-foreground)]">
+          {progress}%
         </span>
       </div>
     </div>

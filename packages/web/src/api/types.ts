@@ -16,7 +16,6 @@ export interface Task {
   description: string;
   start_date: string;
   end_date: string;
-  progress: number;
   dependencies: string;
   is_milestone: boolean;
   color: string | null;
@@ -47,7 +46,6 @@ export interface CreateTaskRequest {
   description: string;
   start_date: string;
   end_date: string;
-  progress: number;
   dependencies: string;
   is_milestone: boolean;
   color?: string;
@@ -60,7 +58,6 @@ export interface UpdateTaskRequest {
   description?: string;
   start_date?: string;
   end_date?: string;
-  progress?: number;
   dependencies?: string;
   is_milestone?: boolean;
   color?: string;

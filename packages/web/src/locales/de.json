@@ -51,6 +51,7 @@
     "create": "Neue Aufgabe",
     "edit": "Aufgabe bearbeiten",
     "delete": "Aufgabe löschen",
+    "deleteConfirm": "Sind Sie sicher, dass Sie diese Aufgabe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "name": "Aufgabenname",
     "description": "Beschreibung",
     "startDate": "Startdatum",

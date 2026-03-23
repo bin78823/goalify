@@ -10,7 +10,6 @@ export interface Task {
   description?: string;
   startDate: Date;
   endDate: Date;
-  progress: number;
   dependencies: string[];
   isMilestone: boolean;
   color?: string;
@@ -68,7 +67,6 @@ function apiTaskToTask(apiTask: ApiTask): Task {
     description: apiTask.description,
     startDate: parseDate(apiTask.start_date),
     endDate: parseDate(apiTask.end_date),
-    progress: apiTask.progress,
     dependencies: parseDependencies(apiTask.dependencies),
     isMilestone: apiTask.is_milestone,
     color: apiTask.color ?? undefined,
@@ -181,7 +179,6 @@ export const useGanttStore = create<GanttState>()((set, get) => ({
       description: task.description ?? "",
       start_date: formatDate(task.startDate),
       end_date: formatDate(task.endDate),
-      progress: task.progress,
       dependencies: formatDependencies(task.dependencies),
       is_milestone: task.isMilestone,
       color: task.color,
@@ -201,7 +198,6 @@ export const useGanttStore = create<GanttState>()((set, get) => ({
       description?: string;
       start_date?: string;
       end_date?: string;
-      progress?: number;
       dependencies?: string;
       is_milestone?: boolean;
       color?: string;
@@ -213,7 +209,6 @@ export const useGanttStore = create<GanttState>()((set, get) => ({
       apiUpdates.start_date = formatDate(updates.startDate);
     if (updates.endDate !== undefined)
       apiUpdates.end_date = formatDate(updates.endDate);
-    if (updates.progress !== undefined) apiUpdates.progress = updates.progress;
     if (updates.dependencies !== undefined)
       apiUpdates.dependencies = formatDependencies(updates.dependencies);
     if (updates.isMilestone !== undefined)

@@ -35,7 +35,6 @@ pub fn init_db() -> SqliteResult<Connection> {
             description TEXT DEFAULT '',
             start_date TEXT NOT NULL,
             end_date TEXT NOT NULL,
-            progress REAL DEFAULT 0,
             dependencies TEXT DEFAULT '[]',
             is_milestone INTEGER DEFAULT 0,
             color TEXT,
@@ -194,7 +193,6 @@ pub fn create_task(
     description: &str,
     start_date: &str,
     end_date: &str,
-    progress: f64,
     dependencies: &str,
     is_milestone: bool,
     color: Option<&str>,
@@ -204,8 +202,8 @@ pub fn create_task(
     let is_milestone_int = if is_milestone { 1 } else { 0 };
 
     conn.execute(
-        "INSERT INTO tasks (id, project_id, name, description, start_date, end_date, progress, dependencies, is_milestone, color, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
-        params![id, project_id, name, description, start_date, end_date, progress, dependencies, is_milestone_int, color, now, now],
+        "INSERT INTO tasks (id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        params![id, project_id, name, description, start_date, end_date, dependencies, is_milestone_int, color, now, now],
     )?;
 
     Ok(Task {
@@ -215,7 +213,6 @@ pub fn create_task(
         description: description.to_string(),
         start_date: start_date.to_string(),
         end_date: end_date.to_string(),
-        progress,
         dependencies: dependencies.to_string(),
         is_milestone,
         color: color.map(|s| s.to_string()),
@@ -226,12 +223,12 @@ pub fn create_task(
 
 pub fn get_tasks_by_project(conn: &Connection, project_id: &str) -> SqliteResult<Vec<Task>> {
     let mut stmt = conn.prepare(
-        "SELECT id, project_id, name, description, start_date, end_date, progress, dependencies, is_milestone, color, created_at, updated_at FROM tasks WHERE project_id = ?1 ORDER BY created_at ASC"
+        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, created_at, updated_at FROM tasks WHERE project_id = ?1 ORDER BY created_at ASC"
     )?;
 
     let tasks = stmt
         .query_map(params![project_id], |row| {
-            let is_milestone_int: i32 = row.get(8)?;
+            let is_milestone_int: i32 = row.get(7)?;
             Ok(Task {
                 id: row.get(0)?,
                 project_id: row.get(1)?,
@@ -239,12 +236,11 @@ pub fn get_tasks_by_project(conn: &Connection, project_id: &str) -> SqliteResult
                 description: row.get(3)?,
                 start_date: row.get(4)?,
                 end_date: row.get(5)?,
-                progress: row.get(6)?,
-                dependencies: row.get(7)?,
+                dependencies: row.get(6)?,
                 is_milestone: is_milestone_int != 0,
-                color: row.get(9)?,
-                created_at: row.get(10)?,
-                updated_at: row.get(11)?,
+                color: row.get(8)?,
+                created_at: row.get(9)?,
+                updated_at: row.get(10)?,
             })
         })?
         .collect::<SqliteResult<Vec<_>>>()?;
@@ -254,13 +250,13 @@ pub fn get_tasks_by_project(conn: &Connection, project_id: &str) -> SqliteResult
 
 pub fn get_task_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Task>> {
     let mut stmt = conn.prepare(
-        "SELECT id, project_id, name, description, start_date, end_date, progress, dependencies, is_milestone, color, created_at, updated_at FROM tasks WHERE id = ?1"
+        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, created_at, updated_at FROM tasks WHERE id = ?1"
     )?;
 
     let mut rows = stmt.query(params![id])?;
 
     if let Some(row) = rows.next()? {
-        let is_milestone_int: i32 = row.get(8)?;
+        let is_milestone_int: i32 = row.get(7)?;
         Ok(Some(Task {
             id: row.get(0)?,
             project_id: row.get(1)?,
@@ -268,12 +264,11 @@ pub fn get_task_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Task>>
             description: row.get(3)?,
             start_date: row.get(4)?,
             end_date: row.get(5)?,
-            progress: row.get(6)?,
-            dependencies: row.get(7)?,
+            dependencies: row.get(6)?,
             is_milestone: is_milestone_int != 0,
-            color: row.get(9)?,
-            created_at: row.get(10)?,
-            updated_at: row.get(11)?,
+            color: row.get(8)?,
+            created_at: row.get(9)?,
+            updated_at: row.get(10)?,
         }))
     } else {
         Ok(None)
@@ -288,7 +283,6 @@ pub fn update_task(
     description: Option<&str>,
     start_date: Option<&str>,
     end_date: Option<&str>,
-    progress: Option<f64>,
     dependencies: Option<&str>,
     is_milestone: Option<bool>,
     color: Option<&str>,
@@ -323,12 +317,6 @@ pub fn update_task(
         conn.execute(
             "UPDATE tasks SET end_date = ?1, updated_at = ?2 WHERE id = ?3",
             params![end_date, now, id],
-        )?;
-    }
-    if let Some(progress) = progress {
-        conn.execute(
-            "UPDATE tasks SET progress = ?1, updated_at = ?2 WHERE id = ?3",
-            params![progress, now, id],
         )?;
     }
     if let Some(dependencies) = dependencies {

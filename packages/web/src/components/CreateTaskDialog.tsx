@@ -11,7 +11,6 @@ import {
 import { Input } from "@goalify/ui";
 import { Label } from "@goalify/ui";
 import { DatePicker } from "@goalify/ui";
-import ProgressSliderWithMilestones from "./ProgressSliderWithMilestones";
 import { useFormValidation, ValidationRules } from "../hooks/useFormValidation";
 
 export const TASK_COLORS = [
@@ -52,7 +51,6 @@ interface TaskFormData {
   description: string;
   startDate: Date;
   endDate: Date;
-  progress: number;
   isMilestone: boolean;
 }
 
@@ -64,7 +62,6 @@ interface CreateTaskDialogProps {
     description: string;
     startDate: Date;
     endDate: Date;
-    progress: number;
     isMilestone: boolean;
     color: string;
   }) => void;
@@ -153,7 +150,6 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
         description: values.description,
         startDate: new Date(values.startDate),
         endDate: new Date(values.endDate),
-        progress: 0,
         isMilestone: false,
         color: selectedColor.primary,
       });
@@ -228,19 +224,7 @@ const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
               <p className="text-red-500 text-sm">{errors.endDate}</p>
             )}
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="progress" className="font-medium text-sm">
-              {t("task.progress")}
-            </Label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <ProgressSliderWithMilestones value={0} onChange={() => {}} />
-              </div>
-              <span className="text-sm font-medium text-[var(--vibrant-blue)] w-10 text-right">
-                0%
-              </span>
-            </div>
-          </div>
+
           <div className="grid gap-2">
             <Label className="font-medium text-sm">{t("task.color")}</Label>
             <div className="flex gap-2">

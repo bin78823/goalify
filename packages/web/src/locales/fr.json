@@ -51,6 +51,7 @@
     "create": "Nouvelle tâche",
     "edit": "Modifier la tâche",
     "delete": "Supprimer la tâche",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible.",
     "name": "Nom de la tâche",
     "description": "Description",
     "startDate": "Date de début",

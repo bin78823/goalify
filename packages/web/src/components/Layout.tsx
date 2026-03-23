@@ -198,17 +198,17 @@ const Layout: React.FC = () => {
             </Button>
 
             <Select value={i18n.language} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-[88px] h-8 bg-transparent border-none text-[10px] font-bold hover:bg-[var(--secondary)] transition-colors uppercase">
+              <SelectTrigger className="w-[100px] h-8 bg-transparent border-none text-[11px] font-medium hover:bg-[var(--secondary)] transition-colors">
                 <Globe className="mr-1 h-3 w-3 text-[var(--vibrant-blue)]" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]">
-                <SelectItem value="en">EN</SelectItem>
-                <SelectItem value="zh-CN">CN</SelectItem>
-                <SelectItem value="zh-TW">TW</SelectItem>
-                <SelectItem value="ja">JA</SelectItem>
-                <SelectItem value="de">DE</SelectItem>
-                <SelectItem value="fr">FR</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="zh-CN">简体中文</SelectItem>
+                <SelectItem value="zh-TW">繁体中文</SelectItem>
+                <SelectItem value="ja">日本語</SelectItem>
+                <SelectItem value="de">Deutsch</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -282,14 +282,17 @@ const Layout: React.FC = () => {
             </Button>
 
             <Select value={i18n.language} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-28 h-8 bg-transparent border-none text-xs font-medium hover:bg-[var(--secondary)]">
+              <SelectTrigger className="w-[100px] h-8 bg-transparent border-none text-xs font-medium hover:bg-[var(--secondary)]">
                 <Globe className="mr-1.5 h-3.5 w-3.5 text-[var(--vibrant-blue)]" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]">
                 <SelectItem value="en">English</SelectItem>
                 <SelectItem value="zh-CN">简体中文</SelectItem>
-                <SelectItem value="zh-TW">繁體中文</SelectItem>
+                <SelectItem value="zh-TW">繁体中文</SelectItem>
+                <SelectItem value="ja">日本語</SelectItem>
+                <SelectItem value="de">Deutsch</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
               </SelectContent>
             </Select>
           </div>

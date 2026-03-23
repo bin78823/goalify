@@ -1,17 +1,20 @@
-import * as React from 'react';
-import * as PopoverPrimitive from '@radix-ui/react-popover';
-import { format } from 'date-fns';
-import { zhCN, zhTW, enUS } from 'date-fns/locale';
-import type { Locale } from 'date-fns';
-import { Calendar } from './Calendar';
-import { cn } from '../lib/utils';
-import { Button } from './Button';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import * as React from "react";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { format } from "date-fns";
+import { zhCN, zhTW, enUS, ja, de, fr } from "date-fns/locale";
+import type { Locale } from "date-fns";
+import { Calendar } from "./Calendar";
+import { cn } from "../lib/utils";
+import { Button } from "./Button";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 const localeMap: Record<string, Locale> = {
   en: enUS,
-  'zh-CN': zhCN,
-  'zh-TW': zhTW,
+  "zh-CN": zhCN,
+  "zh-TW": zhTW,
+  ja,
+  de,
+  fr,
 };
 
 export interface DatePickerProps {
@@ -25,55 +28,83 @@ export interface DatePickerProps {
 const DatePicker = React.forwardRef<
   HTMLButtonElement,
   DatePickerProps & React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Root>
->(({ value, onChange, placeholder = 'Select date', className, locale = 'en', ...props }, ref) => {
-  const [open, setOpen] = React.useState(false);
-  const dateFnsLocale = localeMap[locale] || enUS;
+>(
+  (
+    {
+      value,
+      onChange,
+      placeholder = "Select date",
+      className,
+      locale = "en",
+      ...props
+    },
+    ref,
+  ) => {
+    const [open, setOpen] = React.useState(false);
+    const dateFnsLocale = localeMap[locale] || enUS;
 
-  const getPlaceholder = () => {
-    if (placeholder !== 'Select date') return placeholder;
-    switch (locale) {
-      case 'zh-CN':
-        return '选择日期';
-      case 'zh-TW':
-        return '選擇日期';
-      default:
-        return 'Select date';
-    }
-  };
+    const formatDisplayDate = (date: Date) => {
+      if (locale === "ja") {
+        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+      }
+      return format(date, "PPP", { locale: dateFnsLocale });
+    };
 
-  return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen} {...props}>
-      <PopoverPrimitive.Trigger asChild>
-        <Button
-          ref={ref}
-          variant="outline"
-          className={cn('w-full justify-start text-left font-normal', !value && 'text-slate-500')}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? format(value, 'PPP', { locale: dateFnsLocale }) : getPlaceholder()}
-        </Button>
-      </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-          align="start"
-          side="bottom"
-          sideOffset={8}
-          className="z-50 w-auto rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 outline-none animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
-        >
-          <Calendar
-            mode="single"
-            selected={value}
-            localeCode={locale}
-            onSelect={(date) => {
-              onChange?.(date);
-              setOpen(false);
-            }}
-          />
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
-  );
-});
-DatePicker.displayName = 'DatePicker';
+    const getPlaceholder = () => {
+      if (placeholder !== "Select date") return placeholder;
+      switch (locale) {
+        case "zh-CN":
+          return "选择日期";
+        case "zh-TW":
+          return "選擇日期";
+        case "ja":
+          return "日付を選択";
+        case "de":
+          return "Datum wählen";
+        case "fr":
+          return "Sélectionner une date";
+        default:
+          return "Select date";
+      }
+    };
+
+    return (
+      <PopoverPrimitive.Root open={open} onOpenChange={setOpen} {...props}>
+        <PopoverPrimitive.Trigger asChild>
+          <Button
+            ref={ref}
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal bg-[var(--secondary)] dark:bg-[var(--secondary)] border-[var(--border)] text-[var(--foreground)]",
+              !value && "text-[var(--muted-foreground)]",
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? formatDisplayDate(value) : getPlaceholder()}
+          </Button>
+        </PopoverPrimitive.Trigger>
+        <PopoverPrimitive.Portal>
+          <PopoverPrimitive.Content
+            align="start"
+            side="bottom"
+            sideOffset={8}
+            className="z-50 w-auto rounded-xl border border-[var(--border)] bg-[var(--popover)] shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 outline-none animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+          >
+            <Calendar
+              mode="single"
+              selected={value}
+              localeCode={locale}
+              onSelect={(date) => {
+                onChange?.(date);
+                setOpen(false);
+              }}
+            />
+          </PopoverPrimitive.Content>
+        </PopoverPrimitive.Portal>
+      </PopoverPrimitive.Root>
+    );
+  },
+);
+DatePicker.displayName = "DatePicker";
 
 export { DatePicker };

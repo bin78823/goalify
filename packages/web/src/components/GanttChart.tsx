@@ -5,6 +5,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@goalify/ui";
 import type { Task } from "../contexts/GanttContext";
 import { TASK_COLORS } from "./CreateTaskDialog";
 import { useDateFormatter } from "../hooks/useDateFormatter";
+import { useSubtaskStore } from "../stores/SubtaskStore";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -95,6 +96,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
     getWeekNumber,
     formatDateRange,
   } = useDateFormatter();
+  const { countsByParent } = useSubtaskStore();
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
   const isDraggingRef = useRef(false);
@@ -105,6 +107,18 @@ const GanttChart: React.FC<GanttChartProps> = ({
   const taskBarRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState<number>(0);
+
+  // 根据子任务完成度计算进度（只计算done状态）
+  const getTaskProgress = useCallback((taskId: string): number => {
+    const counts = countsByParent[taskId];
+    if (!counts) return 0;
+
+    const total = counts.todo + counts.in_progress + counts.done;
+    if (total === 0) return 0;
+
+    // 只计算done状态的子任务
+    return Math.round((counts.done / total) * 100);
+  }, [countsByParent]);
 
   useEffect(() => {
     const measure = () => {
@@ -421,6 +435,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
         const isDragging = dragState?.taskId === task.id;
         const isResizing = resizeState?.taskId === task.id;
         const isSelected = selectedTaskId === task.id;
+        const progress = getTaskProgress(task.id);
 
         const dragTransform = getDragTransform(task.id);
         const resizeStyle = getResizeStyle(task);
@@ -467,7 +482,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
               <div
                 className="absolute inset-0 bg-black/40"
                 style={{
-                  width: `${100 - task.progress}%`,
+                  width: `${100 - progress}%`,
                   right: 0,
                   left: "auto",
                 }}
@@ -477,7 +492,7 @@ const GanttChart: React.FC<GanttChartProps> = ({
                   {task.name}
                 </span>
                 <span className="text-[10px] font-bold text-white/90 drop-shadow-md">
-                  {task.progress}%
+                  {progress}%
                 </span>
               </div>
               <div
@@ -545,13 +560,13 @@ const GanttChart: React.FC<GanttChartProps> = ({
                         <div
                           className="h-full rounded-full transition-all duration-300"
                           style={{
-                            width: `${task.progress}%`,
+                            width: `${progress}%`,
                             backgroundColor: task.color || "#64748b",
                           }}
                         />
                       </div>
                       <span className="text-xs font-semibold text-[var(--muted-foreground)] min-w-[36px] text-right">
-                        {task.progress}%
+                        {progress}%
                       </span>
                     </div>
                   </div>

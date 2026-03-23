@@ -51,6 +51,7 @@
     "create": "新建任务",
     "edit": "编辑任务",
     "delete": "删除任务",
+    "deleteConfirm": "确定要删除此任务吗？此操作无法撤销。",
     "name": "任务名称",
     "description": "描述",
     "startDate": "开始日期",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FolderKanban,
@@ -29,6 +29,7 @@ import {
 import type { Project } from "../contexts/GanttContext";
 import { useTabNavigation } from "../hooks/useTabNavigation";
 import { useGanttStore } from "../contexts/GanttContext";
+import { useSubtaskStore } from "../stores/SubtaskStore";
 import ProjectFormDialog from "./ProjectFormDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
@@ -40,9 +41,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const { t, i18n } = useTranslation();
   const { openProjectTab } = useTabNavigation();
   const { updateProject, deleteProject } = useGanttStore();
+  const { countsByParent, loadCountsByParent } = useSubtaskStore();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 加载所有任务的子任务统计
+  useEffect(() => {
+    if (project.tasks.length > 0) {
+      const taskIds = project.tasks.map((t) => t.id);
+      loadCountsByParent(taskIds);
+    }
+  }, [project.tasks, loadCountsByParent]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString(i18n.language, {
@@ -51,13 +61,40 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     });
   };
 
-  const completedTasks = project.tasks.filter(
-    (task) => task.progress >= 100,
-  ).length;
-  const progress =
-    project.tasks.length > 0
-      ? (completedTasks / project.tasks.length) * 100
-      : 0;
+  // 根据子任务完成度计算每个任务的进度
+  const getTaskProgress = (taskId: string): number => {
+    const counts = countsByParent[taskId];
+    if (!counts) return 0;
+    const total = counts.todo + counts.in_progress + counts.done;
+    if (total === 0) return 0;
+    return Math.round((counts.done / total) * 100);
+  };
+
+  // 计算项目进度
+  const { completedTasks, inProgressTasks, pendingTasks, progress } = useMemo(() => {
+    const completed = project.tasks.filter(
+      (task) => getTaskProgress(task.id) >= 100,
+    ).length;
+    const inProgress = project.tasks.filter(
+      (task) => {
+        const p = getTaskProgress(task.id);
+        return p > 0 && p < 100;
+      },
+    ).length;
+    const pending = project.tasks.filter(
+      (task) => getTaskProgress(task.id) === 0,
+    ).length;
+    const prog =
+      project.tasks.length > 0
+        ? (completed / project.tasks.length) * 100
+        : 0;
+    return {
+      completedTasks: completed,
+      inProgressTasks: inProgress,
+      pendingTasks: pending,
+      progress: prog,
+    };
+  }, [project.tasks, countsByParent]);
 
   const handleEditSave = (updates: {
     name: string;
@@ -177,32 +214,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               {project.tasks.length > 0 ? (
                 <div className="flex items-center gap-1.5">
                   {(() => {
-                    const completed = project.tasks.filter(
-                      (t) => t.progress >= 100,
-                    ).length;
-                    const inProgress = project.tasks.filter(
-                      (t) => t.progress > 0 && t.progress < 100,
-                    ).length;
-                    const pending = project.tasks.filter(
-                      (t) => t.progress === 0,
-                    ).length;
                     const statusItems = [
                       {
-                        count: completed,
+                        count: completedTasks,
                         dot: "bg-emerald-500",
                         bg: "bg-emerald-500/10",
                         text: "text-emerald-600 dark:text-emerald-400",
                         label: t("task.status.completed"),
                       },
                       {
-                        count: inProgress,
+                        count: inProgressTasks,
                         dot: "bg-blue-500",
                         bg: "bg-blue-500/10",
                         text: "text-blue-600 dark:text-blue-400",
                         label: t("task.status.inProgress"),
                       },
                       {
-                        count: pending,
+                        count: pendingTasks,
                         dot: "bg-slate-400 dark:bg-slate-500",
                         bg: "bg-slate-400/10 dark:bg-slate-500/10",
                         text: "text-slate-500 dark:text-slate-400",

@@ -1,5 +1,6 @@
 import * as ExcelJS from "exceljs";
 import type { Task } from "../contexts/GanttContext";
+import type { SubtaskCounts } from "../stores/SubtaskStore";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -10,6 +11,7 @@ interface ExcelExportOptions {
   dateRange: { start: Date; end: Date };
   t: (key: string) => string;
   language: string;
+  countsByParent?: Record<string, SubtaskCounts>;
 }
 
 const hexToARGB = (hex: string): string => {
@@ -116,7 +118,16 @@ export const exportGanttToExcel = async ({
   dateRange,
   t,
   language,
+  countsByParent = {},
 }: ExcelExportOptions) => {
+  // 根据子任务完成度计算进度
+  const getTaskProgress = (taskId: string): number => {
+    const counts = countsByParent[taskId];
+    if (!counts) return 0;
+    const total = counts.todo + counts.in_progress + counts.done;
+    if (total === 0) return 0;
+    return Math.round((counts.done / total) * 100);
+  };
   try {
     const workbook = new ExcelJS.Workbook();
 
@@ -418,8 +429,9 @@ export const exportGanttToExcel = async ({
         bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
       };
 
+      const taskProgress = getTaskProgress(task.id);
       const progressCell = row.getCell(4);
-      progressCell.value = `${task.progress}%`;
+      progressCell.value = `${taskProgress}%`;
       progressCell.font = { size: 10, bold: true, color: { argb: "FF2563EB" } };
       progressCell.alignment = { vertical: "middle", horizontal: "center" };
       progressCell.border = {
@@ -480,7 +492,7 @@ export const exportGanttToExcel = async ({
         if (dTime >= sTime && dTime <= eTime) {
           const totalDays = Math.max(1, (eTime - sTime) / 86400000 + 1);
           const currentDay = (dTime - sTime) / 86400000;
-          const isDone = currentDay < totalDays * (task.progress / 100);
+          const isDone = currentDay < totalDays * (taskProgress / 100);
 
           cell.fill = {
             type: "pattern",
@@ -492,7 +504,7 @@ export const exportGanttToExcel = async ({
           if (
             isDone &&
             dTime - sTime > 0 &&
-            dTime - sTime < totalDays * (task.progress / 100)
+            dTime - sTime < totalDays * (taskProgress / 100)
           ) {
             cell.border = {
               left: { style: "thin", color: { argb: "FFFFFFFF" } },

@@ -51,6 +51,7 @@
     "create": "新規タスク",
     "edit": "タスクを編集",
     "delete": "タスクを削除",
+    "deleteConfirm": "このタスクを削除してもよろしいですか？この操作は元に戻せません。",
     "name": "タスク名",
     "description": "説明",
     "startDate": "開始日",

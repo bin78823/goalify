@@ -11,7 +11,6 @@ import GanttChart from "../components/GanttChart";
 import GanttExportImage from "../components/GanttExportImage";
 import { exportGanttToExcel } from "../utils/excelExport";
 import CreateTaskDialog from "../components/CreateTaskDialog";
-import TaskDetailDrawer from "../components/TaskDetailDrawer";
 import { useDateFormatter } from "../hooks/useDateFormatter";
 import { useSubtaskStore } from "../stores/SubtaskStore";
 
@@ -30,14 +29,13 @@ const GanttPage: React.FC = () => {
   } = useDateFormatter();
   const { projects, addTask, updateTask, deleteTask, reorderTasks } =
     useGanttStore();
-  const { countsByParent } = useSubtaskStore();
+  const { countsByParent, loadCountsByParent } = useSubtaskStore();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [leftPanelWidth, setLeftPanelWidth] = useState(320);
   const [isResizing, setIsResizing] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [drawerTaskId, setDrawerTaskId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dateRangeVersion, setDateRangeVersion] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
@@ -55,24 +53,19 @@ const GanttPage: React.FC = () => {
     exportReadyResolver.current?.();
   }, []);
 
-  const handleSubtaskOpen = useCallback(
-    (task: Task) => {
-      setDrawerTaskId(null);
-      navigate(`/subtask/${task.id}`);
-    },
-    [navigate],
-  );
-
   const project = projects.find((p) => p.id === projectId);
+
+  // 加载所有任务的子任务统计
+  useEffect(() => {
+    if (project?.tasks && project.tasks.length > 0) {
+      const taskIds = project.tasks.map((t) => t.id);
+      loadCountsByParent(taskIds);
+    }
+  }, [project?.tasks, loadCountsByParent]);
 
   const selectedTask = useMemo(
     () => project?.tasks.find((t) => t.id === selectedTaskId) || null,
     [project?.tasks, selectedTaskId],
-  );
-
-  const drawerTask = useMemo(
-    () => project?.tasks.find((t) => t.id === drawerTaskId) || null,
-    [project?.tasks, drawerTaskId],
   );
 
   const dayWidth = useMemo(() => {
@@ -123,7 +116,13 @@ const GanttPage: React.FC = () => {
         const daysNeeded = Math.ceil(
           (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
         );
-        end.setDate(start.getDate() + Math.max(8 * 7 - 1, daysNeeded));
+        const totalDays = Math.max(8 * 7, daysNeeded + 1);
+        end = new Date(start);
+        end.setDate(start.getDate() + totalDays - 1);
+        // 确保 end 是周日
+        if (end.getDay() !== 0) {
+          end.setDate(end.getDate() + (7 - end.getDay()));
+        }
         break;
       case "month":
         start.setDate(1);
@@ -160,24 +159,27 @@ const GanttPage: React.FC = () => {
     const result: { start: Date; end: Date; daysCount: number }[] = [];
     const current = new Date(dateRange.start);
     current.setHours(0, 0, 0, 0);
-    current.setDate(current.getDate() - ((current.getDay() + 6) % 7));
     while (current <= dateRange.end) {
       const weekStart = new Date(current);
       const weekEnd = new Date(current);
-      weekEnd.setDate(weekEnd.getDate() + 6);
+      // 找到本周日（周六结束）
+      const daysUntilSunday = (7 - current.getDay()) % 7;
+      weekEnd.setDate(weekEnd.getDate() + daysUntilSunday);
+      weekEnd.setHours(0, 0, 0, 0);
+      // 如果本周结束超过日期范围，则使用日期范围的结束
       if (weekEnd > dateRange.end) {
         weekEnd.setTime(dateRange.end.getTime());
       }
-      weekEnd.setHours(23, 59, 59, 999);
-      const daysCount = Math.round(
+      // 计算天数：使用日期差而不是时间戳差，避免精度问题
+      const daysCount = Math.floor(
         (weekEnd.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      ) + 1;
       result.push({
         start: weekStart,
         end: weekEnd,
         daysCount,
       });
-      current.setDate(current.getDate() + 7);
+      current.setDate(current.getDate() + daysCount);
     }
     return result;
   }, [dateRange]);
@@ -467,8 +469,7 @@ const GanttPage: React.FC = () => {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTaskId(task.id);
-    setDrawerTaskId(task.id);
-    scrollToTask(task);
+    navigate(`/subtask/${task.id}`);
   };
 
   const handleTaskListClick = (task: Task) => {
@@ -536,7 +537,6 @@ const GanttPage: React.FC = () => {
     description: string;
     startDate: Date;
     endDate: Date;
-    progress: number;
     isMilestone: boolean;
     color: string;
   }) => {
@@ -546,7 +546,6 @@ const GanttPage: React.FC = () => {
       description: task.description,
       startDate: new Date(task.startDate),
       endDate: new Date(task.endDate),
-      progress: task.progress,
       dependencies: [],
       isMilestone: task.isMilestone,
       color: task.color,
@@ -558,7 +557,6 @@ const GanttPage: React.FC = () => {
     if (!projectId) return;
     deleteTask(projectId, taskId);
     setSelectedTaskId(null);
-    setDrawerTaskId(null);
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
@@ -836,6 +834,7 @@ const GanttPage: React.FC = () => {
         dateRange: exportDateRange,
         t,
         language: i18n.language,
+        countsByParent,
       });
       toast.success(
         t("gantt.exportExcelSuccess") || "Excel exported successfully",
@@ -973,7 +972,7 @@ const GanttPage: React.FC = () => {
           />
 
           <div
-            className="flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-gradient-to-r from-[var(--secondary)]/80 via-[var(--card)] to-[var(--card)] overflow-x-hidden overflow-y-scroll scrollbar-reserve shadow-sm shrink-0"
+            className="flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-[var(--card)] overflow-x-hidden overflow-y-scroll scrollbar-reserve shadow-sm shrink-0 dark:shadow-none"
             ref={headerRef}
           >
             <div
@@ -1028,16 +1027,6 @@ const GanttPage: React.FC = () => {
         </div>
       </div>
 
-      <TaskDetailDrawer
-        task={drawerTask}
-        isOpen={!!drawerTaskId}
-        onClose={() => setDrawerTaskId(null)}
-        onUpdate={handleUpdateTask}
-        onDelete={handleDeleteTask}
-        subtaskCounts={drawerTask ? countsByParent[drawerTask.id] : undefined}
-        onSubtaskOpen={handleSubtaskOpen}
-      />
-
       <div
         ref={exportContainerRef}
         style={{
@@ -1062,6 +1051,7 @@ const GanttPage: React.FC = () => {
             months={exportMonths}
             dateRange={exportDateRange}
             getPositionAndWidth={getExportPositionAndWidth}
+            countsByParent={countsByParent}
             onReady={handleExportReady}
           />
         )}

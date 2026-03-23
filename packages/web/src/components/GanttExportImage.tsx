@@ -4,6 +4,7 @@ import { Calendar } from "lucide-react";
 import type { Task } from "../contexts/GanttContext";
 import { TASK_COLORS } from "./CreateTaskDialog";
 import { useDateFormatter } from "../hooks/useDateFormatter";
+import type { SubtaskCounts } from "../stores/SubtaskStore";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -39,6 +40,7 @@ interface GanttExportImageProps {
   months: MonthInfo[];
   dateRange: { start: Date; end: Date };
   getPositionAndWidth: (task: Task) => { left: number; width: number };
+  countsByParent?: Record<string, SubtaskCounts>;
   onReady?: () => void;
 }
 
@@ -52,6 +54,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
   months,
   dateRange,
   getPositionAndWidth,
+  countsByParent = {},
   onReady,
 }) => {
   const { t } = useTranslation();
@@ -63,6 +66,18 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
     formatDateRange,
     formatFullDate,
   } = useDateFormatter();
+
+  // 根据子任务完成度计算进度（只计算done状态）
+  const getTaskProgress = React.useCallback((taskId: string): number => {
+    const counts = countsByParent[taskId];
+    if (!counts) return 0;
+
+    const total = counts.todo + counts.in_progress + counts.done;
+    if (total === 0) return 0;
+
+    // 只计算done状态的子任务
+    return Math.round((counts.done / total) * 100);
+  }, [countsByParent]);
 
   React.useEffect(() => {
     if (onReady) {
@@ -284,6 +299,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
     >
       {tasks.map((task, index) => {
         const { left, width } = getPositionAndWidth(task);
+        const progress = getTaskProgress(task.id);
 
         return (
           <div
@@ -313,14 +329,14 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
                   task.color,
               }}
             >
-              {task.progress < 100 && (
+              {progress < 100 && (
                 <div
                   style={{
                     position: "absolute",
                     top: 0,
                     bottom: 0,
                     right: 0,
-                    width: `${100 - task.progress}%`,
+                    width: `${100 - progress}%`,
                     background: "rgba(0, 0, 0, 0.4)",
                   }}
                 />
@@ -361,7 +377,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
                     textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
                   }}
                 >
-                  {task.progress}%
+                  {progress}%
                 </span>
               </div>
             </div>
@@ -497,99 +513,102 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
                 {t("task.title")}
               </span>
             </div>
-            {tasks.map((task, index) => (
-              <div
-                key={task.id}
-                style={{
-                  height: 56,
-                  padding: "0 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  borderBottom: `1px solid rgba(226, 232, 240, 0.6)`,
-                }}
-              >
+            {tasks.map((task, index) => {
+              const progress = getTaskProgress(task.id);
+              return (
                 <div
+                  key={task.id}
                   style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    flexShrink: 0,
-                    boxShadow: "0 0 0 2px white",
-                    backgroundColor: task.color || "#64748b",
-                  }}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      color: COLORS.foreground,
-                      margin: 0,
-                    }}
-                  >
-                    {task.name}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 500,
-                      color: "rgba(100, 116, 139, 0.8)",
-                      margin: "2px 0 0 0",
-                    }}
-                  >
-                    {Math.ceil(
-                      (new Date(task.endDate).getTime() -
-                        new Date(task.startDate).getTime()) /
-                        (1000 * 60 * 60 * 24),
-                    ) + 1}{" "}
-                    {t("task.duration")}
-                  </p>
-                </div>
-                <div
-                  style={{
+                    height: 56,
+                    padding: "0 16px",
                     display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                    gap: 4,
-                    flexShrink: 0,
-                    minWidth: 52,
+                    alignItems: "center",
+                    gap: 12,
+                    borderBottom: `1px solid rgba(226, 232, 240, 0.6)`,
                   }}
                 >
                   <div
                     style={{
-                      width: 40,
-                      height: 6,
-                      backgroundColor: COLORS.secondary,
-                      borderRadius: 9999,
-                      overflow: "hidden",
-                      boxShadow: "inset 0 0 0 1px rgba(226, 232, 240, 0.5)",
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      boxShadow: "0 0 0 2px white",
+                      backgroundColor: task.color || "#64748b",
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        color: COLORS.foreground,
+                        margin: 0,
+                      }}
+                    >
+                      {task.name}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 500,
+                        color: "rgba(100, 116, 139, 0.8)",
+                        margin: "2px 0 0 0",
+                      }}
+                    >
+                      {Math.ceil(
+                        (new Date(task.endDate).getTime() -
+                          new Date(task.startDate).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      ) + 1}{" "}
+                      {t("task.duration")}
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                      gap: 4,
+                      flexShrink: 0,
+                      minWidth: 52,
                     }}
                   >
                     <div
                       style={{
-                        height: "100%",
+                        width: 40,
+                        height: 6,
+                        backgroundColor: COLORS.secondary,
                         borderRadius: 9999,
-                        width: `${task.progress}%`,
-                        backgroundColor: task.color || "#64748b",
+                        overflow: "hidden",
+                        boxShadow: "inset 0 0 0 1px rgba(226, 232, 240, 0.5)",
                       }}
-                    />
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          borderRadius: 9999,
+                          width: `${progress}%`,
+                          backgroundColor: task.color || "#64748b",
+                        }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: COLORS.mutedForeground,
+                      }}
+                    >
+                      {progress}%
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: COLORS.mutedForeground,
-                    }}
-                  >
-                    {task.progress}%
-                  </span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
