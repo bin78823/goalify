@@ -91,3 +91,14 @@ export interface UpdateSubtaskRequest {
   status?: SubtaskStatus;
   order_index?: number;
 }
+
+export interface SupabaseUser {
+  id: string;
+  email: string;
+}
+
+export interface AuthResult {
+  success: boolean;
+  user: SupabaseUser | null;
+  message: string | null;
+}

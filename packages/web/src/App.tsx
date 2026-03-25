@@ -1,5 +1,10 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { TooltipProvider, Toaster } from "@goalify/ui";
 import { GanttProvider, useGanttStore } from "./contexts/GanttContext";
 import { I18nextProvider } from "react-i18next";
@@ -8,6 +13,9 @@ import Layout from "./components/Layout";
 import ProjectsPage from "./pages/ProjectsPage";
 import GanttPage from "./pages/GanttPage";
 import SubtaskBoardPage from "./pages/SubtaskBoardPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import { useAuthStore } from "./stores/AuthStore";
 
 function AppContent() {
   const loadProjects = useGanttStore((s) => s.loadProjects);
@@ -19,6 +27,8 @@ function AppContent() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/projects" replace />} />
           <Route path="projects" element={<ProjectsPage />} />

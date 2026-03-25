@@ -187,5 +187,23 @@
     "ganttCharts": "ガントチャート",
     "taskTracking": "タスク追跡",
     "visualTimeline": "視覚的タイムライン"
+  },
+  "auth": {
+    "signIn": "ログイン",
+    "signUp": "登録",
+    "signOut": "ログアウト",
+    "signInDescription": "ログインしてプロジェクトの管理を続ける",
+    "signUpDescription": "アカウントを作成してプロジェクト管理を始める",
+    "noAccount": "アカウントをお持ちでない方？",
+    "hasAccount": "すでにアカウントをお持ちの方",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "createAccount": "アカウント作成",
+    "signingIn": "ログイン中...",
+    "creatingAccount": "作成中...",
+    "passwordMismatch": "パスワードが一致しません",
+    "passwordHint": "パスワードは6文字以上必要です",
+    "signUpSuccess": "アカウントが作成されました！リダイレクト中..."
   }
 }

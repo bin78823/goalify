@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   LayoutGrid,
@@ -10,8 +10,16 @@ import {
   Minus,
   Square,
   FolderKanban,
+  LogOut,
+  User,
+  Cloud,
+  CloudOff,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-import { Button } from "@goalify/ui";
+import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@goalify/ui";
+import { useAuthStore } from "../stores/AuthStore";
+import { useSyncStore } from "../stores/SyncStore";
 import {
   Select,
   SelectContent,
@@ -62,8 +70,129 @@ const usePlatform = () => {
   };
 };
 
+// 同步状态指示器组件
+const SyncStatusIndicator: React.FC = () => {
+  const { status, lastSyncedAt, lastError, sync } = useSyncStore();
+  const { isAuthenticated } = useAuthStore();
+
+  // 未登录时不显示同步按钮
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const getStatusDisplay = () => {
+    switch (status) {
+      case "syncing":
+        return {
+          icon: <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--vibrant-blue)]" />,
+          text: "同步中",
+          className: "text-[var(--vibrant-blue)]",
+        };
+      case "error":
+        return {
+          icon: <AlertCircle className="h-3.5 w-3.5 text-red-500" />,
+          text: "同步失败",
+          className: "text-red-500",
+        };
+      case "offline":
+        return {
+          icon: <CloudOff className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />,
+          text: "离线",
+          className: "text-[var(--muted-foreground)]",
+        };
+      default:
+        return {
+          icon: <Cloud className="h-3.5 w-3.5 text-emerald-500" />,
+          text: "已同步",
+          className: "text-emerald-500",
+        };
+    }
+  };
+
+  const { icon, text, className } = getStatusDisplay();
+
+  const formatLastSync = () => {
+    if (!lastSyncedAt) return "从未同步";
+    const date = new Date(lastSyncedAt);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return "刚刚";
+    if (minutes < 60) return `${minutes}分钟前`;
+    if (hours < 24) return `${hours}小时前`;
+    return `${days}天前`;
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={() => sync()}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[var(--secondary)] transition-colors ${className}`}
+        >
+          {icon}
+          <span className="text-xs">{text}</span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className="text-sm">
+          <p>最后同步: {formatLastSync()}</p>
+          {lastError && <p className="text-red-500 mt-1">{lastError}</p>}
+          <p className="text-[var(--muted-foreground)] mt-1">点击立即同步</p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
+// 登录/登出按钮组件
+const AuthButton: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { isAuthenticated, signOut } = useAuthStore();
+  const { stopPeriodicSync } = useSyncStore();
+
+  const handleSignOut = async () => {
+    await signOut();
+    stopPeriodicSync();
+    navigate("/login");
+  };
+
+  if (isAuthenticated) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleSignOut}
+        className="rounded-lg w-7 h-7 hover:bg-[var(--secondary)] transition-colors"
+        title={t("auth.signOut")}
+      >
+        <LogOut className="h-3.5 w-3.5 text-slate-600" />
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => navigate("/login")}
+      className="rounded-lg h-7 px-2 hover:bg-[var(--secondary)] transition-colors text-xs"
+    >
+      <User className="h-3.5 w-3.5 mr-1" />
+      {t("auth.signIn")}
+    </Button>
+  );
+};
+
 const Layout: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { isAuthenticated, checkAuth } = useAuthStore();
+  const { startPeriodicSync, stopPeriodicSync } = useSyncStore();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem("theme") as "light" | "dark") || "light";
@@ -75,6 +204,24 @@ const Layout: React.FC = () => {
   const { isMacOS, isWindows } = usePlatform();
   const { tabs, activeTabId, handleTabClick, handleTabClose } =
     useTabNavigation();
+
+  // 组件挂载时检查认证状态
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // 登录后启动定时同步
+  useEffect(() => {
+    if (isAuthenticated) {
+      startPeriodicSync();
+    } else {
+      stopPeriodicSync();
+    }
+
+    return () => {
+      stopPeriodicSync();
+    };
+  }, [isAuthenticated, startPeriodicSync, stopPeriodicSync]);
 
   useEffect(() => {
     setIsTauriEnv(isTauri());
@@ -184,6 +331,10 @@ const Layout: React.FC = () => {
 
           {/* 工具栏按钮 */}
           <div className="flex items-center gap-1 px-3 h-full border-l border-[var(--border)]/30">
+            <SyncStatusIndicator />
+
+            {isAuthenticated && <div className="w-px h-4 bg-[var(--border)] mx-1" />}
+
             <Button
               variant="ghost"
               size="icon"
@@ -211,6 +362,8 @@ const Layout: React.FC = () => {
                 <SelectItem value="fr">Français</SelectItem>
               </SelectContent>
             </Select>
+
+            <AuthButton />
           </div>
 
           {/* Windows: 右侧窗口控制按钮 */}
@@ -268,6 +421,10 @@ const Layout: React.FC = () => {
             ))}
           </div>
           <div className="flex items-center gap-3">
+            <SyncStatusIndicator />
+
+            {isAuthenticated && <div className="w-px h-4 bg-[var(--border)]" />}
+
             <Button
               variant="ghost"
               size="icon"
@@ -295,6 +452,8 @@ const Layout: React.FC = () => {
                 <SelectItem value="fr">Français</SelectItem>
               </SelectContent>
             </Select>
+
+            <AuthButton />
           </div>
         </div>
       </header>

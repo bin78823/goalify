@@ -187,5 +187,23 @@
     "ganttCharts": "甘特圖",
     "taskTracking": "任務追蹤",
     "visualTimeline": "視覺化時間線"
+  },
+  "auth": {
+    "signIn": "登入",
+    "signUp": "註冊",
+    "signOut": "登出",
+    "signInDescription": "登入以繼續管理您的項目",
+    "signUpDescription": "創建賬戶以開始管理您的項目",
+    "noAccount": "還沒有賬戶？",
+    "hasAccount": "已有賬戶？",
+    "email": "郵箱地址",
+    "password": "密碼",
+    "confirmPassword": "確認密碼",
+    "createAccount": "創建賬戶",
+    "signingIn": "登入中...",
+    "creatingAccount": "創建中...",
+    "passwordMismatch": "密碼不匹配",
+    "passwordHint": "密碼長度至少為 6 個字符",
+    "signUpSuccess": "賬戶創建成功！正在跳轉..."
   }
 }

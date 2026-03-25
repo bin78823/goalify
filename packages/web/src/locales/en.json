@@ -187,5 +187,23 @@
     "ganttCharts": "Gantt Charts",
     "taskTracking": "Task Tracking",
     "visualTimeline": "Visual Timeline"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signOut": "Sign out",
+    "signInDescription": "Sign in to continue managing your projects",
+    "signUpDescription": "Create an account to start managing your projects",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "createAccount": "Create account",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "passwordMismatch": "Passwords do not match",
+    "passwordHint": "Password must be at least 6 characters",
+    "signUpSuccess": "Account created successfully! Redirecting..."
   }
 }

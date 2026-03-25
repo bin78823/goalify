@@ -51,9 +51,11 @@ pnpm --filter @goalify/ui dev         # vite build --watch
 pnpm --filter @goalify/ui lint        # eslint .
 pnpm --filter @goalify/ui format      # prettier --write .
 
-# Desktop package
+# Desktop package (Rust/Tauri)
 pnpm --filter @goalify/desktop tauri dev
 pnpm --filter @goalify/desktop tauri build
+cd packages/desktop/src-tauri && cargo build      # Just compile
+cd packages/desktop/src-tauri && cargo check      # Type check only
 
 # Mobile package
 pnpm --filter @goalify/mobile start          # Expo dev server
@@ -61,22 +63,23 @@ pnpm --filter @goalify/mobile ios            # Run on iOS
 pnpm --filter @goalify/mobile android        # Run on Android
 pnpm --filter @goalify/mobile web            # Run on web
 pnpm --filter @goalify/mobile prebuild       # Generate native projects
-pnpm --filter @goalify/mobile lint           # eslint .
-pnpm --filter @goalify/mobile typecheck      # tsc --noEmit
+pnpm --filter @goalify/mobile lint          # eslint .
+pnpm --filter @goalify/mobile typecheck     # tsc --noEmit
 ```
 
 ### Type checking
 
 ```bash
-pnpm --filter @goalify/web typecheck      # cd packages/web && npx tsc --noEmit
-pnpm --filter @goalify/ui typecheck       # cd packages/ui && npx tsc --noEmit
-pnpm --filter @goalify/desktop typecheck # cd packages/desktop && npx tsc --noEmit
-pnpm --filter @goalify/mobile typecheck   # cd packages/mobile && npx tsc --noEmit
+# Web
+cd packages/web && npx tsc --noEmit
+
+# Desktop (Rust)
+cd packages/desktop/src-tauri && cargo check
 ```
 
 ### Testing
 
-**No test framework configured.** If adding tests, use Vitest (fits Vite/React stack). Check with user first on preferred framework.
+**No test framework configured.** If adding tests, use Vitest (fits Vite/React stack).
 
 ---
 
@@ -89,6 +92,7 @@ pnpm --filter @goalify/mobile typecheck   # cd packages/mobile && npx tsc --noEm
 - Import shared UI from `@goalify/ui`: `import { Button } from '@goalify/ui'`
 - Use `cn()` from `@goalify/ui/lib/utils` for class merging
 - Direct lucide-react imports: `import { Check, X } from 'lucide-react'`
+- Tauri APIs: Check environment with `const isTauri = typeof window !== "undefined" && "__TAURI__" in window;`
 
 ### Formatting & TypeScript
 
@@ -134,6 +138,7 @@ pnpm --filter @goalify/mobile typecheck   # cd packages/mobile && npx tsc --noEm
 ```
 packages/
   web/src/
+    api/            # API layer (Tauri invoke wrappers)
     components/     # Feature components
     contexts/       # React contexts + Zustand stores
     hooks/          # Custom hooks
@@ -145,18 +150,63 @@ packages/
     components/     # Radix-based UI primitives
     lib/            # Shared utilities (cn, etc.)
     index.ts        # Barrel exports
+  desktop/src-tauri/
+    src/
+      commands/     # Tauri commands (Rust)
+      db/           # SQLite operations
+      models/       # Data models
+      supabase/     # Supabase client
   mobile/           # Expo React Native app
-  desktop/          # Tauri desktop wrapper
 ```
 
-### Git Workflow
+---
+
+## Supabase Integration (Authentication & Sync)
+
+### Configuration
+
+- **URL:** https://bvumnoyrcgazjbcznkkt.supabase.co
+- **ANON_KEY:** Hardcoded in `supabase/mod.rs`
+- Tables: `projects`, `tasks`, `subtasks` (with owner_id column for RLS)
+
+### Auth Commands (Rust)
+
+- `sign_up`, `sign_in`, `sign_out` - Authentication
+- `get_current_user`, `is_authenticated` - Session management
+
+### Sync Commands
+
+- `sync_push` - Push local data to Supabase (UPSERT)
+- `sync_pull` - Pull user's data from Supabase
+- `sync_all` - Both push and pull
+
+### Frontend Usage
+
+```typescript
+import { authApi } from "@/api/auth";
+import { syncApi } from "@/api/sync";
+import { useAuthStore } from "@/stores/AuthStore";
+
+// Login triggers auto-sync
+await useAuthStore.getState().signIn(email, password);
+
+// Manual sync
+await syncApi.all();
+```
+
+---
+
+## Git Workflow
 
 - Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`, etc.
 - Husky pre-commit hooks run lint-staged
 - Standard branch naming: `feature/`, `fix/`, etc.
 
-### Key Patterns
+---
+
+## Key Patterns
 
 - **Gantt chart:** Context provider wraps app, Zustand stores manage state, components consume via hooks
 - **Tab system:** Zustand-persisted tab state synced with project lifecycle
 - **UI primitives:** shadcn/ui pattern — Radix UI + CVA + Tailwind + `cn()`
+- **Tauri + Rust:** Commands in `src/commands/`, database in `src/db/`, models in `src/models/`

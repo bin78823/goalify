@@ -187,5 +187,23 @@
     "ganttCharts": "Gantt-Diagramme",
     "taskTracking": "Aufgabenverfolgung",
     "visualTimeline": "Visuelle Zeitachse"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signUp": "Registrieren",
+    "signOut": "Abmelden",
+    "signInDescription": "Melden Sie sich an, um Ihre Projekte weiter zu verwalten",
+    "signUpDescription": "Erstellen Sie ein Konto, um Ihre Projekte zu verwalten",
+    "noAccount": "Noch kein Konto?",
+    "hasAccount": "Haben Sie bereits ein Konto?",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "createAccount": "Konto erstellen",
+    "signingIn": "Anmelden...",
+    "creatingAccount": "Konto wird erstellt...",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "passwordHint": "Das Passwort muss mindestens 6 Zeichen lang sein",
+    "signUpSuccess": "Konto erfolgreich erstellt! Weiterleitung..."
   }
 }

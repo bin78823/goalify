@@ -8,6 +8,7 @@ pub struct Project {
     pub start_date: String,
     pub end_date: String,
     pub icon: Option<String>,
+    pub owner_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -23,6 +24,7 @@ pub struct Task {
     pub dependencies: String,
     pub is_milestone: bool,
     pub color: Option<String>,
+    pub owner_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -79,6 +81,7 @@ pub struct Subtask {
     pub description: String,
     pub status: String,
     pub order_index: i32,
+    pub owner_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }

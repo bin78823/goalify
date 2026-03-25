@@ -187,5 +187,23 @@
     "ganttCharts": "甘特图",
     "taskTracking": "任务跟踪",
     "visualTimeline": "可视化时间线"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signUp": "注册",
+    "signOut": "退出",
+    "signInDescription": "登录以继续管理您的项目",
+    "signUpDescription": "创建账户以开始管理您的项目",
+    "noAccount": "还没有账户？",
+    "hasAccount": "已有账户？",
+    "email": "邮箱地址",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "createAccount": "创建账户",
+    "signingIn": "登录中...",
+    "creatingAccount": "创建中...",
+    "passwordMismatch": "密码不匹配",
+    "passwordHint": "密码长度至少为 6 个字符",
+    "signUpSuccess": "账户创建成功！正在跳转..."
   }
 }

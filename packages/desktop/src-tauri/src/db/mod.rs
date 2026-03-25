@@ -24,6 +24,7 @@ pub fn init_db() -> SqliteResult<Connection> {
             start_date TEXT NOT NULL,
             end_date TEXT NOT NULL,
             icon TEXT,
+            owner_id TEXT,
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
         );
@@ -38,6 +39,7 @@ pub fn init_db() -> SqliteResult<Connection> {
             dependencies TEXT DEFAULT '[]',
             is_milestone INTEGER DEFAULT 0,
             color TEXT,
+            owner_id TEXT,
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
@@ -50,14 +52,45 @@ pub fn init_db() -> SqliteResult<Connection> {
             description TEXT DEFAULT '',
             status TEXT DEFAULT 'todo',
             order_index INTEGER DEFAULT 0,
+            owner_id TEXT,
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS sync_queue (
+            id TEXT PRIMARY KEY,
+            table_name TEXT NOT NULL,
+            record_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            synced_at TEXT,
+            retry_count INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS user_sessions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            email TEXT NOT NULL,
+            refresh_token TEXT NOT NULL,
+            expires_at INTEGER NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
         CREATE INDEX IF NOT EXISTS idx_subtasks_parent_id ON subtasks(parent_id);
-        CREATE INDEX IF NOT EXISTS idx_subtasks_status ON subtasks(status);",
+        CREATE INDEX IF NOT EXISTS idx_subtasks_status ON subtasks(status);
+        CREATE INDEX IF NOT EXISTS idx_sync_queue_synced_at ON sync_queue(synced_at);",
     )?;
+
+    conn.execute("ALTER TABLE projects ADD COLUMN owner_id TEXT", [])
+        .ok();
+
+    conn.execute("ALTER TABLE tasks ADD COLUMN owner_id TEXT", [])
+        .ok();
+
+    conn.execute("ALTER TABLE subtasks ADD COLUMN owner_id TEXT", [])
+        .ok();
 
     Ok(conn)
 }
@@ -69,13 +102,14 @@ pub fn create_project(
     start_date: &str,
     end_date: &str,
     icon: Option<&str>,
+    owner_id: Option<&str>,
 ) -> SqliteResult<Project> {
     let id = uuid::Uuid::new_v4().to_string();
     let now = chrono::Utc::now().to_rfc3339();
 
     conn.execute(
-        "INSERT INTO projects (id, name, description, start_date, end_date, icon, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-        params![id, name, description, start_date, end_date, icon, now, now],
+        "INSERT INTO projects (id, name, description, start_date, end_date, icon, owner_id, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        params![id, name, description, start_date, end_date, icon, owner_id, now, now],
     )?;
 
     Ok(Project {
@@ -85,6 +119,37 @@ pub fn create_project(
         start_date: start_date.to_string(),
         end_date: end_date.to_string(),
         icon: icon.map(|s| s.to_string()),
+        owner_id: owner_id.map(|s| s.to_string()),
+        created_at: now.clone(),
+        updated_at: now,
+    })
+}
+
+pub fn create_project_with_id(
+    conn: &Connection,
+    id: &str,
+    name: &str,
+    description: &str,
+    start_date: &str,
+    end_date: &str,
+    icon: Option<&str>,
+    owner_id: Option<&str>,
+) -> SqliteResult<Project> {
+    let now = chrono::Utc::now().to_rfc3339();
+
+    conn.execute(
+        "INSERT INTO projects (id, name, description, start_date, end_date, icon, owner_id, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        params![id, name, description, start_date, end_date, icon, owner_id, now, now],
+    )?;
+
+    Ok(Project {
+        id: id.to_string(),
+        name: name.to_string(),
+        description: description.to_string(),
+        start_date: start_date.to_string(),
+        end_date: end_date.to_string(),
+        icon: icon.map(|s| s.to_string()),
+        owner_id: owner_id.map(|s| s.to_string()),
         created_at: now.clone(),
         updated_at: now,
     })
@@ -92,7 +157,7 @@ pub fn create_project(
 
 pub fn get_all_projects(conn: &Connection) -> SqliteResult<Vec<Project>> {
     let mut stmt = conn.prepare(
-        "SELECT id, name, description, start_date, end_date, icon, created_at, updated_at FROM projects ORDER BY created_at DESC"
+        "SELECT id, name, description, start_date, end_date, icon, owner_id, created_at, updated_at FROM projects ORDER BY created_at DESC"
     )?;
 
     let projects = stmt
@@ -104,8 +169,9 @@ pub fn get_all_projects(conn: &Connection) -> SqliteResult<Vec<Project>> {
                 start_date: row.get(3)?,
                 end_date: row.get(4)?,
                 icon: row.get(5)?,
-                created_at: row.get(6)?,
-                updated_at: row.get(7)?,
+                owner_id: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
             })
         })?
         .collect::<SqliteResult<Vec<_>>>()?;
@@ -115,7 +181,7 @@ pub fn get_all_projects(conn: &Connection) -> SqliteResult<Vec<Project>> {
 
 pub fn get_project_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Project>> {
     let mut stmt = conn.prepare(
-        "SELECT id, name, description, start_date, end_date, icon, created_at, updated_at FROM projects WHERE id = ?1"
+        "SELECT id, name, description, start_date, end_date, icon, owner_id, created_at, updated_at FROM projects WHERE id = ?1"
     )?;
 
     let mut rows = stmt.query(params![id])?;
@@ -128,8 +194,9 @@ pub fn get_project_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Pro
             start_date: row.get(3)?,
             end_date: row.get(4)?,
             icon: row.get(5)?,
-            created_at: row.get(6)?,
-            updated_at: row.get(7)?,
+            owner_id: row.get(6)?,
+            created_at: row.get(7)?,
+            updated_at: row.get(8)?,
         }))
     } else {
         Ok(None)
@@ -186,6 +253,42 @@ pub fn delete_project(conn: &Connection, id: &str) -> SqliteResult<bool> {
     Ok(rows_affected > 0)
 }
 
+pub fn set_project_owner(
+    conn: &Connection,
+    project_id: &str,
+    owner_id: &str,
+) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE projects SET owner_id = ?1, updated_at = ?2 WHERE id = ?3",
+        params![owner_id, chrono::Utc::now().to_rfc3339(), project_id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
+pub fn get_projects_without_owner(conn: &Connection) -> SqliteResult<Vec<Project>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, name, description, start_date, end_date, icon, owner_id, created_at, updated_at FROM projects WHERE owner_id IS NULL"
+    )?;
+
+    let projects = stmt
+        .query_map([], |row| {
+            Ok(Project {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+                start_date: row.get(3)?,
+                end_date: row.get(4)?,
+                icon: row.get(5)?,
+                owner_id: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(projects)
+}
+
 pub fn create_task(
     conn: &Connection,
     project_id: &str,
@@ -196,14 +299,15 @@ pub fn create_task(
     dependencies: &str,
     is_milestone: bool,
     color: Option<&str>,
+    owner_id: Option<&str>,
 ) -> SqliteResult<Task> {
     let id = uuid::Uuid::new_v4().to_string();
     let now = chrono::Utc::now().to_rfc3339();
     let is_milestone_int = if is_milestone { 1 } else { 0 };
 
     conn.execute(
-        "INSERT INTO tasks (id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
-        params![id, project_id, name, description, start_date, end_date, dependencies, is_milestone_int, color, now, now],
+        "INSERT INTO tasks (id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, owner_id, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        params![id, project_id, name, description, start_date, end_date, dependencies, is_milestone_int, color, owner_id, now, now],
     )?;
 
     Ok(Task {
@@ -216,6 +320,44 @@ pub fn create_task(
         dependencies: dependencies.to_string(),
         is_milestone,
         color: color.map(|s| s.to_string()),
+        owner_id: owner_id.map(|s| s.to_string()),
+        created_at: now.clone(),
+        updated_at: now,
+    })
+}
+
+pub fn create_task_with_id(
+    conn: &Connection,
+    id: &str,
+    project_id: &str,
+    name: &str,
+    description: &str,
+    start_date: &str,
+    end_date: &str,
+    dependencies: &str,
+    is_milestone: bool,
+    color: Option<&str>,
+    owner_id: Option<&str>,
+) -> SqliteResult<Task> {
+    let now = chrono::Utc::now().to_rfc3339();
+    let is_milestone_int = if is_milestone { 1 } else { 0 };
+
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, owner_id, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        params![id, project_id, name, description, start_date, end_date, dependencies, is_milestone_int, color, owner_id, now, now],
+    )?;
+
+    Ok(Task {
+        id: id.to_string(),
+        project_id: project_id.to_string(),
+        name: name.to_string(),
+        description: description.to_string(),
+        start_date: start_date.to_string(),
+        end_date: end_date.to_string(),
+        dependencies: dependencies.to_string(),
+        is_milestone,
+        color: color.map(|s| s.to_string()),
+        owner_id: owner_id.map(|s| s.to_string()),
         created_at: now.clone(),
         updated_at: now,
     })
@@ -223,7 +365,7 @@ pub fn create_task(
 
 pub fn get_tasks_by_project(conn: &Connection, project_id: &str) -> SqliteResult<Vec<Task>> {
     let mut stmt = conn.prepare(
-        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, created_at, updated_at FROM tasks WHERE project_id = ?1 ORDER BY created_at ASC"
+        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, owner_id, created_at, updated_at FROM tasks WHERE project_id = ?1 ORDER BY created_at ASC"
     )?;
 
     let tasks = stmt
@@ -239,8 +381,9 @@ pub fn get_tasks_by_project(conn: &Connection, project_id: &str) -> SqliteResult
                 dependencies: row.get(6)?,
                 is_milestone: is_milestone_int != 0,
                 color: row.get(8)?,
-                created_at: row.get(9)?,
-                updated_at: row.get(10)?,
+                owner_id: row.get(9)?,
+                created_at: row.get(10)?,
+                updated_at: row.get(11)?,
             })
         })?
         .collect::<SqliteResult<Vec<_>>>()?;
@@ -250,7 +393,7 @@ pub fn get_tasks_by_project(conn: &Connection, project_id: &str) -> SqliteResult
 
 pub fn get_task_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Task>> {
     let mut stmt = conn.prepare(
-        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, created_at, updated_at FROM tasks WHERE id = ?1"
+        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, owner_id, created_at, updated_at FROM tasks WHERE id = ?1"
     )?;
 
     let mut rows = stmt.query(params![id])?;
@@ -267,8 +410,9 @@ pub fn get_task_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Task>>
             dependencies: row.get(6)?,
             is_milestone: is_milestone_int != 0,
             color: row.get(8)?,
-            created_at: row.get(9)?,
-            updated_at: row.get(10)?,
+            owner_id: row.get(9)?,
+            created_at: row.get(10)?,
+            updated_at: row.get(11)?,
         }))
     } else {
         Ok(None)
@@ -349,7 +493,11 @@ pub fn delete_task(conn: &Connection, id: &str) -> SqliteResult<bool> {
 
 // ============ Subtask CRUD ============
 
-pub fn create_subtask(conn: &Connection, request: &CreateSubtaskRequest) -> SqliteResult<Subtask> {
+pub fn create_subtask(
+    conn: &Connection,
+    request: &CreateSubtaskRequest,
+    owner_id: Option<&str>,
+) -> SqliteResult<Subtask> {
     let id = uuid::Uuid::new_v4().to_string();
     let now = chrono::Utc::now().to_rfc3339();
     let status = request.status.as_deref().unwrap_or("todo");
@@ -369,8 +517,8 @@ pub fn create_subtask(conn: &Connection, request: &CreateSubtaskRequest) -> Sqli
     };
 
     conn.execute(
-        "INSERT INTO subtasks (id, parent_id, name, description, status, order_index, created_at, updated_at) 
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        "INSERT INTO subtasks (id, parent_id, name, description, status, order_index, owner_id, created_at, updated_at) 
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
         params![
             id,
             request.parent_id,
@@ -378,6 +526,7 @@ pub fn create_subtask(conn: &Connection, request: &CreateSubtaskRequest) -> Sqli
             request.description.as_deref().unwrap_or(""),
             status,
             order_index,
+            owner_id,
             now,
             now
         ],
@@ -390,6 +539,48 @@ pub fn create_subtask(conn: &Connection, request: &CreateSubtaskRequest) -> Sqli
         description: request.description.clone().unwrap_or_default(),
         status: status.to_string(),
         order_index,
+        owner_id: owner_id.map(|s| s.to_string()),
+        created_at: now.clone(),
+        updated_at: now,
+    })
+}
+
+pub fn create_subtask_with_id(
+    conn: &Connection,
+    id: &str,
+    parent_id: &str,
+    name: &str,
+    description: &str,
+    status: &str,
+    order_index: i32,
+    owner_id: Option<&str>,
+) -> SqliteResult<Subtask> {
+    let now = chrono::Utc::now().to_rfc3339();
+
+    conn.execute(
+        "INSERT INTO subtasks (id, parent_id, name, description, status, order_index, owner_id, created_at, updated_at) 
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        params![
+            id,
+            parent_id,
+            name,
+            description,
+            status,
+            order_index,
+            owner_id,
+            now,
+            now
+        ],
+    )?;
+
+    Ok(Subtask {
+        id: id.to_string(),
+        parent_id: parent_id.to_string(),
+        name: name.to_string(),
+        description: description.to_string(),
+        status: status.to_string(),
+        order_index,
+        owner_id: owner_id.map(|s| s.to_string()),
         created_at: now.clone(),
         updated_at: now,
     })
@@ -397,7 +588,7 @@ pub fn create_subtask(conn: &Connection, request: &CreateSubtaskRequest) -> Sqli
 
 pub fn get_subtasks_by_parent(conn: &Connection, parent_id: &str) -> SqliteResult<Vec<Subtask>> {
     let mut stmt = conn.prepare(
-        "SELECT id, parent_id, name, description, status, order_index, created_at, updated_at 
+        "SELECT id, parent_id, name, description, status, order_index, owner_id, created_at, updated_at 
          FROM subtasks WHERE parent_id = ?1 
          ORDER BY status, order_index",
     )?;
@@ -411,8 +602,9 @@ pub fn get_subtasks_by_parent(conn: &Connection, parent_id: &str) -> SqliteResul
                 description: row.get(3)?,
                 status: row.get(4)?,
                 order_index: row.get(5)?,
-                created_at: row.get(6)?,
-                updated_at: row.get(7)?,
+                owner_id: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
             })
         })?
         .collect::<SqliteResult<Vec<_>>>()?;
@@ -456,7 +648,7 @@ pub fn update_subtask(
 
 pub fn get_subtask_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Subtask>> {
     let mut stmt = conn.prepare(
-        "SELECT id, parent_id, name, description, status, order_index, created_at, updated_at 
+        "SELECT id, parent_id, name, description, status, order_index, owner_id, created_at, updated_at 
          FROM subtasks WHERE id = ?1",
     )?;
 
@@ -470,8 +662,9 @@ pub fn get_subtask_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Sub
             description: row.get(3)?,
             status: row.get(4)?,
             order_index: row.get(5)?,
-            created_at: row.get(6)?,
-            updated_at: row.get(7)?,
+            owner_id: row.get(6)?,
+            created_at: row.get(7)?,
+            updated_at: row.get(8)?,
         }))
     } else {
         Ok(None)
@@ -481,4 +674,220 @@ pub fn get_subtask_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Sub
 pub fn delete_subtask(conn: &Connection, id: &str) -> SqliteResult<bool> {
     let rows_affected = conn.execute("DELETE FROM subtasks WHERE id = ?1", params![id])?;
     Ok(rows_affected > 0)
+}
+
+#[derive(Debug, Clone)]
+pub struct SyncQueueItem {
+    pub id: String,
+    pub table_name: String,
+    pub record_id: String,
+    pub operation: String,
+    pub payload: String,
+    pub created_at: String,
+    pub synced_at: Option<String>,
+    pub retry_count: i32,
+}
+
+pub fn add_to_sync_queue(
+    conn: &Connection,
+    table_name: &str,
+    record_id: &str,
+    operation: &str,
+    payload: &str,
+) -> SqliteResult<String> {
+    let id = uuid::Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().to_rfc3339();
+
+    conn.execute(
+        "INSERT INTO sync_queue (id, table_name, record_id, operation, payload, created_at, retry_count) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![id, table_name, record_id, operation, payload, now, 0],
+    )?;
+
+    Ok(id)
+}
+
+pub fn get_pending_sync_items(conn: &Connection) -> SqliteResult<Vec<SyncQueueItem>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, table_name, record_id, operation, payload, created_at, synced_at, retry_count 
+         FROM sync_queue WHERE synced_at IS NULL ORDER BY created_at ASC",
+    )?;
+
+    let items = stmt
+        .query_map([], |row| {
+            Ok(SyncQueueItem {
+                id: row.get(0)?,
+                table_name: row.get(1)?,
+                record_id: row.get(2)?,
+                operation: row.get(3)?,
+                payload: row.get(4)?,
+                created_at: row.get(5)?,
+                synced_at: row.get(6)?,
+                retry_count: row.get(7)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(items)
+}
+
+pub fn mark_synced(conn: &Connection, id: &str) -> SqliteResult<bool> {
+    let now = chrono::Utc::now().to_rfc3339();
+    let rows_affected = conn.execute(
+        "UPDATE sync_queue SET synced_at = ?1 WHERE id = ?2",
+        params![now, id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
+pub fn increment_retry_count(conn: &Connection, id: &str) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE sync_queue SET retry_count = retry_count + 1 WHERE id = ?1",
+        params![id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
+pub fn clear_synced_items(conn: &Connection) -> SqliteResult<u64> {
+    let rows = conn.execute("DELETE FROM sync_queue WHERE synced_at IS NOT NULL", [])?;
+    Ok(rows as u64)
+}
+
+#[derive(Debug, Clone)]
+pub struct UserSession {
+    pub id: String,
+    pub user_id: String,
+    pub email: String,
+    pub refresh_token: String,
+    pub expires_at: i64,
+    pub created_at: String,
+}
+
+pub fn save_user_session(
+    conn: &Connection,
+    user_id: &str,
+    email: &str,
+    refresh_token: &str,
+    expires_at: i64,
+) -> SqliteResult<String> {
+    let id = uuid::Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().to_rfc3339();
+
+    conn.execute("DELETE FROM user_sessions", [])?;
+
+    conn.execute(
+        "INSERT INTO user_sessions (id, user_id, email, refresh_token, expires_at, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![id, user_id, email, refresh_token, expires_at, now],
+    )?;
+
+    Ok(id)
+}
+
+pub fn get_user_session(conn: &Connection) -> SqliteResult<Option<UserSession>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, user_id, email, refresh_token, expires_at, created_at FROM user_sessions LIMIT 1"
+    )?;
+
+    let mut rows = stmt.query([])?;
+
+    if let Some(row) = rows.next()? {
+        Ok(Some(UserSession {
+            id: row.get(0)?,
+            user_id: row.get(1)?,
+            email: row.get(2)?,
+            refresh_token: row.get(3)?,
+            expires_at: row.get(4)?,
+            created_at: row.get(5)?,
+        }))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn clear_user_session(conn: &Connection) -> SqliteResult<bool> {
+    let rows = conn.execute("DELETE FROM user_sessions", [])?;
+    Ok(rows > 0)
+}
+
+pub fn set_task_owner(conn: &Connection, task_id: &str, owner_id: &str) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE tasks SET owner_id = ?1, updated_at = ?2 WHERE id = ?3",
+        params![owner_id, chrono::Utc::now().to_rfc3339(), task_id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
+pub fn set_subtask_owner(
+    conn: &Connection,
+    subtask_id: &str,
+    owner_id: &str,
+) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE subtasks SET owner_id = ?1, updated_at = ?2 WHERE id = ?3",
+        params![owner_id, chrono::Utc::now().to_rfc3339(), subtask_id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
+pub fn update_project_owner(
+    conn: &Connection,
+    project_id: &str,
+    owner_id: &str,
+) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE projects SET owner_id = ?1, updated_at = ?2 WHERE id = ?3",
+        params![owner_id, chrono::Utc::now().to_rfc3339(), project_id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
+pub fn get_all_tasks(conn: &Connection) -> SqliteResult<Vec<Task>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, owner_id, created_at, updated_at FROM tasks ORDER BY created_at ASC"
+    )?;
+
+    let tasks = stmt
+        .query_map([], |row| {
+            let is_milestone_int: i32 = row.get(7)?;
+            Ok(Task {
+                id: row.get(0)?,
+                project_id: row.get(1)?,
+                name: row.get(2)?,
+                description: row.get(3)?,
+                start_date: row.get(4)?,
+                end_date: row.get(5)?,
+                dependencies: row.get(6)?,
+                is_milestone: is_milestone_int != 0,
+                color: row.get(8)?,
+                owner_id: row.get(9)?,
+                created_at: row.get(10)?,
+                updated_at: row.get(11)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(tasks)
+}
+
+pub fn get_all_subtasks(conn: &Connection) -> SqliteResult<Vec<Subtask>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, parent_id, name, description, status, order_index, owner_id, created_at, updated_at FROM subtasks ORDER BY created_at ASC"
+    )?;
+
+    let subtasks = stmt
+        .query_map([], |row| {
+            Ok(Subtask {
+                id: row.get(0)?,
+                parent_id: row.get(1)?,
+                name: row.get(2)?,
+                description: row.get(3)?,
+                status: row.get(4)?,
+                order_index: row.get(5)?,
+                owner_id: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(subtasks)
 }

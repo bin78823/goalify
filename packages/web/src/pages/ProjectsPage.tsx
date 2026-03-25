@@ -62,8 +62,8 @@ const ProjectsPage: React.FC = () => {
           {/* Logo & Brand */}
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--vibrant-blue)] to-[var(--vibrant-violet)] rounded-2xl blur-lg opacity-50" />
-              <div className="relative w-14 h-14 flex items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--vibrant-blue)] to-[var(--vibrant-violet)] shadow-xl shadow-blue-500/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--vibrant-blue)] to-[var(--vibrant-violet)] rounded-2xl blur-md opacity-30" />
+              <div className="relative w-14 h-14 flex items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--vibrant-blue)] to-[var(--vibrant-violet)] shadow-lg shadow-blue-500/25">
                 <GoalifyLogo size={36} />
               </div>
             </div>

@@ -187,5 +187,23 @@
     "ganttCharts": "Diagrammes de Gantt",
     "taskTracking": "Suivi des tâches",
     "visualTimeline": "Chronologie visuelle"
+  },
+  "auth": {
+    "signIn": "Connexion",
+    "signUp": "S'inscrire",
+    "signOut": "Déconnexion",
+    "signInDescription": "Connectez-vous pour continuer à gérer vos projets",
+    "signUpDescription": "Créez un compte pour commencer à gérer vos projets",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "createAccount": "Créer un compte",
+    "signingIn": "Connexion en cours...",
+    "creatingAccount": "Création du compte...",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordHint": "Le mot de passe doit contenir au moins 6 caractères",
+    "signUpSuccess": "Compte créé avec succès ! Redirection en cours..."
   }
 }
