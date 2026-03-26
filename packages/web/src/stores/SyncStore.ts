@@ -10,6 +10,7 @@ interface SyncState {
   lastError: string | null;
   pendingChanges: number;
   retryCount: number;
+  needsSync: boolean;
 
   // 动作
   sync: () => Promise<void>;
@@ -18,6 +19,7 @@ interface SyncState {
   setStatus: (status: SyncStatus) => void;
   setPendingChanges: (count: number) => void;
   clearError: () => void;
+  markNeedsSync: () => void;
 }
 
 // 定时器引用
@@ -39,10 +41,15 @@ export const useSyncStore = create<SyncState>()(
       lastError: null,
       pendingChanges: 0,
       retryCount: 0,
+      needsSync: false,
 
       sync: async () => {
         const currentStatus = get().status;
-        if (currentStatus === "syncing") return;
+        if (currentStatus === "syncing") {
+          // 标记需要同步，同步完成后会再次同步
+          set({ needsSync: true });
+          return;
+        }
 
         // 检查网络状态
         if (!isOnline()) {
@@ -56,7 +63,7 @@ export const useSyncStore = create<SyncState>()(
           return;
         }
 
-        set({ status: "syncing", lastError: null });
+        set({ status: "syncing", lastError: null, needsSync: false });
 
         try {
           const result = await syncApi.all();
@@ -68,6 +75,12 @@ export const useSyncStore = create<SyncState>()(
               lastError: null,
               retryCount: 0,
             });
+
+            // 同步完成后，检查是否还有待处理的变更
+            if (get().needsSync) {
+              // 立即再次同步
+              setTimeout(() => get().sync(), 0);
+            }
           } else {
             throw new Error(result.message);
           }
@@ -91,6 +104,8 @@ export const useSyncStore = create<SyncState>()(
           }
         }
       },
+
+      markNeedsSync: () => set({ needsSync: true }),
 
       startPeriodicSync: () => {
         // 停止已有的定时器

@@ -72,10 +72,10 @@ const usePlatform = () => {
 
 // 同步状态指示器组件
 const SyncStatusIndicator: React.FC = () => {
+  const { t } = useTranslation();
   const { status, lastSyncedAt, lastError, sync } = useSyncStore();
   const { isAuthenticated } = useAuthStore();
 
-  // 未登录时不显示同步按钮
   if (!isAuthenticated) {
     return null;
   }
@@ -85,25 +85,25 @@ const SyncStatusIndicator: React.FC = () => {
       case "syncing":
         return {
           icon: <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--vibrant-blue)]" />,
-          text: "同步中",
+          text: t("sync.syncing"),
           className: "text-[var(--vibrant-blue)]",
         };
       case "error":
         return {
           icon: <AlertCircle className="h-3.5 w-3.5 text-red-500" />,
-          text: "同步失败",
+          text: t("sync.error"),
           className: "text-red-500",
         };
       case "offline":
         return {
           icon: <CloudOff className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />,
-          text: "离线",
+          text: t("sync.offline"),
           className: "text-[var(--muted-foreground)]",
         };
       default:
         return {
           icon: <Cloud className="h-3.5 w-3.5 text-emerald-500" />,
-          text: "已同步",
+          text: t("sync.synced"),
           className: "text-emerald-500",
         };
     }
@@ -112,7 +112,7 @@ const SyncStatusIndicator: React.FC = () => {
   const { icon, text, className } = getStatusDisplay();
 
   const formatLastSync = () => {
-    if (!lastSyncedAt) return "从未同步";
+    if (!lastSyncedAt) return t("sync.neverSynced");
     const date = new Date(lastSyncedAt);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -120,10 +120,10 @@ const SyncStatusIndicator: React.FC = () => {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "刚刚";
-    if (minutes < 60) return `${minutes}分钟前`;
-    if (hours < 24) return `${hours}小时前`;
-    return `${days}天前`;
+    if (minutes < 1) return t("sync.justNow", "刚刚");
+    if (minutes < 60) return t("sync.minutesAgo", "{{count}}分钟前", { count: minutes });
+    if (hours < 24) return t("sync.hoursAgo", "{{count}}小时前", { count: hours });
+    return t("sync.daysAgo", "{{count}}天前", { count: days });
   };
 
   return (
@@ -139,9 +139,9 @@ const SyncStatusIndicator: React.FC = () => {
       </TooltipTrigger>
       <TooltipContent>
         <div className="text-sm">
-          <p>最后同步: {formatLastSync()}</p>
+          <p>{t("sync.lastSync", "最后同步: {{time}}", { time: formatLastSync() })}</p>
           {lastError && <p className="text-red-500 mt-1">{lastError}</p>}
-          <p className="text-[var(--muted-foreground)] mt-1">点击立即同步</p>
+          <p className="text-[var(--muted-foreground)] mt-1">{t("sync.clickToSync")}</p>
         </div>
       </TooltipContent>
     </Tooltip>
@@ -165,12 +165,13 @@ const AuthButton: React.FC = () => {
     return (
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={handleSignOut}
-        className="rounded-lg w-7 h-7 hover:bg-[var(--secondary)] transition-colors"
+        className="rounded-lg h-7 px-2 hover:bg-[var(--secondary)] transition-colors text-xs"
         title={t("auth.signOut")}
       >
-        <LogOut className="h-3.5 w-3.5 text-slate-600" />
+        <LogOut className="h-3.5 w-3.5 mr-1" />
+        {t("auth.signOut")}
       </Button>
     );
   }

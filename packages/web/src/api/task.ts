@@ -3,10 +3,26 @@ import type { Task, CreateTaskRequest, UpdateTaskRequest } from "./types";
 
 const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
 
+// 延迟同步，避免频繁操作导致多次同步
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+const triggerSync = () => {
+  // 使用动态导入避免循环依赖
+  import("../stores/SyncStore").then(({ useSyncStore }) => {
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+    }
+    syncTimeout = setTimeout(() => {
+      useSyncStore.getState().sync();
+    }, 500); // 500ms 防抖
+  });
+};
+
 export const taskApi = {
-  create: (request: CreateTaskRequest): Promise<Task> => {
+  create: async (request: CreateTaskRequest): Promise<Task> => {
     if (!isTauri) return Promise.reject("Not running in Tauri environment");
-    return invoke<Task>("create_task", { request });
+    const result = await invoke<Task>("create_task", { request });
+    triggerSync();
+    return result;
   },
 
   getByProject: (projectId: string): Promise<Task[]> => {
@@ -19,13 +35,17 @@ export const taskApi = {
     return invoke<Task | null>("get_task", { id });
   },
 
-  update: (request: UpdateTaskRequest): Promise<Task | null> => {
+  update: async (request: UpdateTaskRequest): Promise<Task | null> => {
     if (!isTauri) return Promise.reject("Not running in Tauri environment");
-    return invoke<Task | null>("update_task", { request });
+    const result = await invoke<Task | null>("update_task", { request });
+    triggerSync();
+    return result;
   },
 
-  delete: (id: string): Promise<boolean> => {
+  delete: async (id: string): Promise<boolean> => {
     if (!isTauri) return Promise.reject("Not running in Tauri environment");
-    return invoke<boolean>("delete_task", { id });
+    const result = await invoke<boolean>("delete_task", { id });
+    triggerSync();
+    return result;
   },
 };

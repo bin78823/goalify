@@ -196,61 +196,14 @@ body {
   scrollbar-width: none;
 }
 
-/* Reserve scrollbar space for consistency - always show space but hide thumb */
-.scrollbar-reserve {
-  scrollbar-gutter: stable;
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb, #c1c1c1)
-    var(--scrollbar-track, #f1f5f9);
-}
-.scrollbar-reserve::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.scrollbar-reserve::-webkit-scrollbar-track {
-  background: var(--scrollbar-track, #f1f5f9);
-  border-radius: 4px;
-}
-.scrollbar-reserve::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb, #c1c1c1);
-  border-radius: 4px;
-  opacity: 0.5;
-}
-.scrollbar-reserve::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover, #a1a1a1);
-  opacity: 0.8;
-}
-.scrollbar-reserve::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track, #f1f5f9);
-}
-
 /* Show scrollbar normally */
 .scrollbar-visible {
   scrollbar-gutter: stable;
-  scrollbar-color: var(--scrollbar-thumb, #c1c1c1)
-    var(--scrollbar-track, #f1f5f9);
+  /* scrollbar-color: var(--scrollbar-thumb, #c1c1c1) transparent; */
 }
 .scrollbar-visible::-webkit-scrollbar {
   width: 8px;
   height: 8px;
-}
-.scrollbar-visible::-webkit-scrollbar-track {
-  background: var(--scrollbar-track, #f1f5f9);
-  border-radius: 4px;
-}
-.scrollbar-visible::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb, #c1c1c1);
-  border-radius: 4px;
-}
-.scrollbar-visible::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover, #a1a1a1);
-}
-.scrollbar-visible::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track, #f1f5f9);
-}
-.scrollbar-visible::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track, transparent);
 }
 .scrollbar-visible::-webkit-scrollbar-track {
   background: transparent;
@@ -262,8 +215,8 @@ body {
 .scrollbar-visible::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover, #a1a1a1);
 }
-.scrollbar-visible {
-  scrollbar-gutter: stable;
+.scrollbar-visible::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Glassmorphism Classes */

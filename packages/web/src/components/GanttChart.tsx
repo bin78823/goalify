@@ -1,24 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { Calendar } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@goalify/ui";
 import type { Task } from "../contexts/GanttContext";
 import { TASK_COLORS } from "./CreateTaskDialog";
 import { useDateFormatter } from "../hooks/useDateFormatter";
 import { useSubtaskStore } from "../stores/SubtaskStore";
-
-type ViewMode = "day" | "week" | "month";
-
-interface DateInfo {
-  start: Date;
-  end: Date;
-  daysCount: number;
-}
-
-interface MonthInfo {
-  date: Date;
-  daysCount: number;
-}
 
 interface DragState {
   taskId: string;
@@ -40,24 +26,12 @@ interface ResizeState {
 interface GanttChartProps {
   tasks: Task[];
   dayWidth: number;
-  viewMode?: ViewMode;
   days: Date[];
-  weeks?: DateInfo[];
-  months?: MonthInfo[];
   selectedTaskId: string | null;
-  dateRange?: { start: Date; end: Date };
   getPositionAndWidth: (task: Task) => { left: number; width: number };
   onTaskClick: (task: Task) => void;
-  onDragStart: (e: React.MouseEvent, task: Task) => void;
-  onResizeStart: (
-    e: React.MouseEvent,
-    task: Task,
-    edge: "left" | "right",
-  ) => void;
   hasDragged: boolean;
-  headerRef?: React.RefObject<HTMLDivElement | null>;
   ganttRef?: React.RefObject<HTMLDivElement | null>;
-  onContentScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
   onDragUpdate?: (taskId: string, deltaDays: number) => void;
   onResizeUpdate?: (
     taskId: string,
@@ -70,32 +44,17 @@ interface GanttChartProps {
 const GanttChart: React.FC<GanttChartProps> = ({
   tasks,
   dayWidth,
-  viewMode = "week",
   days,
-  weeks = [],
-  months = [],
   selectedTaskId,
-  dateRange,
   getPositionAndWidth,
   onTaskClick,
-  onDragStart,
-  onResizeStart,
   hasDragged,
-  headerRef,
   ganttRef,
-  onContentScroll,
   onDragUpdate,
   onResizeUpdate,
   onScroll,
 }) => {
-  const { t } = useTranslation();
-  const {
-    formatMonth,
-    formatWeekday,
-    formatDay,
-    getWeekNumber,
-    formatDateRange,
-  } = useDateFormatter();
+  const { formatDateRange } = useDateFormatter();
   const { countsByParent } = useSubtaskStore();
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
@@ -109,16 +68,19 @@ const GanttChart: React.FC<GanttChartProps> = ({
   const [containerHeight, setContainerHeight] = useState<number>(0);
 
   // 根据子任务完成度计算进度（只计算done状态）
-  const getTaskProgress = useCallback((taskId: string): number => {
-    const counts = countsByParent[taskId];
-    if (!counts) return 0;
+  const getTaskProgress = useCallback(
+    (taskId: string): number => {
+      const counts = countsByParent[taskId];
+      if (!counts) return 0;
 
-    const total = counts.todo + counts.in_progress + counts.done;
-    if (total === 0) return 0;
+      const total = counts.todo + counts.in_progress + counts.done;
+      if (total === 0) return 0;
 
-    // 只计算done状态的子任务
-    return Math.round((counts.done / total) * 100);
-  }, [countsByParent]);
+      // 只计算done状态的子任务
+      return Math.round((counts.done / total) * 100);
+    },
+    [countsByParent],
+  );
 
   useEffect(() => {
     const measure = () => {
@@ -143,15 +105,6 @@ const GanttChart: React.FC<GanttChartProps> = ({
       observer.disconnect();
     };
   }, []);
-
-  const handleContentScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      if (onContentScroll) {
-        onContentScroll(e);
-      }
-    },
-    [onContentScroll],
-  );
 
   const handlePointerDown = useCallback((e: React.PointerEvent, task: Task) => {
     if (e.button !== 0) return;
@@ -330,72 +283,6 @@ const GanttChart: React.FC<GanttChartProps> = ({
     }
     return null;
   };
-
-  const renderDayHeader = () => (
-    <div className="flex h-full" style={{ minWidth: totalWidth }}>
-      {days.map((day, index) => (
-        <div
-          key={index}
-          className={`flex flex-col items-center justify-center text-xs border-r border-slate-300/50 ${
-            isToday(day)
-              ? "bg-[var(--vibrant-blue)]/10 text-[var(--vibrant-blue)] font-black"
-              : isWeekend(day)
-                ? "text-[var(--muted-foreground)] bg-[var(--accent)]"
-                : "text-[var(--muted-foreground)]"
-          }`}
-          style={{ width: dayWidth, height: "100%" }}
-        >
-          <span className="text-[10px] uppercase font-black tracking-tighter opacity-50">
-            {formatWeekday(day)}
-          </span>
-          <span className="text-sm">{formatDay(day)}</span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderWeekHeader = () => (
-    <div className="flex h-full" style={{ minWidth: totalWidth }}>
-      {weeks.map((week, index) => (
-        <div
-          key={index}
-          className={`flex-shrink-0 flex flex-col items-start justify-center text-xs border-r border-slate-300/50 px-4 ${
-            index % 2 === 0 ? "bg-[var(--secondary)]/20" : ""
-          }`}
-          style={{
-            width: week.daysCount * dayWidth,
-            height: "100%",
-          }}
-        >
-          <span className="text-xs font-medium text-[var(--foreground)] whitespace-nowrap">
-            {t("gantt.week")} {getWeekNumber(week.start)}
-          </span>
-          <span className="text-[10px] font-medium text-[var(--muted-foreground)] opacity-60 whitespace-nowrap">
-            {formatDateRange(week.start, week.end)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderMonthHeader = () => (
-    <div className="flex h-full" style={{ minWidth: totalWidth }}>
-      {months.map((monthData, index) => (
-        <div
-          key={index}
-          className="flex-shrink-0 flex flex-col items-start justify-center text-xs border-r border-slate-300/50 text-[var(--foreground)] px-4"
-          style={{
-            width: monthData.daysCount * dayWidth,
-            height: "100%",
-          }}
-        >
-          <span className="text-xs font-medium whitespace-nowrap text-nowrap">
-            {formatMonth(monthData.date)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 
   const renderGridLines = () => (
     <div className="absolute inset-0 flex">
@@ -590,7 +477,6 @@ const GanttChart: React.FC<GanttChartProps> = ({
           }
         }}
         onScroll={(e) => {
-          handleContentScroll(e);
           onScroll?.(e);
         }}
       >

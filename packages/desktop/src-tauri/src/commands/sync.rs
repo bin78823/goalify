@@ -25,23 +25,51 @@ pub async fn sync_push(
     let user = supabase_state.get_user().ok_or("Not authenticated")?;
     let user_id = user.id;
 
+    // 记录同步开始时间（必须在获取数据之前）
+    // 这样可以确保同步过程中发生的变更不会被遗漏
+    let sync_start_time = chrono::Utc::now().to_rfc3339();
+
+    // 获取上次同步时间
+    let last_sync_time = {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
+        db::get_last_sync_time(&conn).ok().flatten()
+    };
+
+    // 获取变更的数据（增量同步）
     let (projects, tasks, subtasks) = {
         let conn = state
             .db
             .lock()
             .map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
-        (
-            db::get_all_projects(&conn).map_err(|e| e.to_string())?,
-            db::get_all_tasks(&conn).map_err(|e| e.to_string())?,
-            db::get_all_subtasks(&conn).map_err(|e| e.to_string())?,
-        )
+        
+        match &last_sync_time {
+            Some(since) => {
+                // 增量同步：只获取上次同步后更新的数据
+                (
+                    db::get_projects_updated_since(&conn, since).map_err(|e| e.to_string())?,
+                    db::get_tasks_updated_since(&conn, since).map_err(|e| e.to_string())?,
+                    db::get_subtasks_updated_since(&conn, since).map_err(|e| e.to_string())?,
+                )
+            }
+            None => {
+                // 首次同步：获取所有数据
+                (
+                    db::get_all_projects(&conn).map_err(|e| e.to_string())?,
+                    db::get_all_tasks(&conn).map_err(|e| e.to_string())?,
+                    db::get_all_subtasks(&conn).map_err(|e| e.to_string())?,
+                )
+            }
+        }
     };
 
     let mut pushed_projects = 0u32;
     let mut pushed_tasks = 0u32;
     let mut pushed_subtasks = 0u32;
 
-    // 同步所有项目（包括已有 owner_id 的，使用 UPSERT 更新）
+    // 同步变更的项目
     for project in projects {
         // 如果没有 owner_id，先设置当前用户为 owner
         if project.owner_id.is_none() {
@@ -72,7 +100,7 @@ pub async fn sync_push(
         }
     }
 
-    // 同步所有任务（包括已有 owner_id 的，使用 UPSERT 更新）
+    // 同步变更的任务
     for task in tasks {
         // 如果没有 owner_id，先设置当前用户为 owner
         if task.owner_id.is_none() {
@@ -106,7 +134,7 @@ pub async fn sync_push(
         }
     }
 
-    // 同步所有子任务（包括已有 owner_id 的，使用 UPSERT 更新）
+    // 同步变更的子任务
     for subtask in subtasks {
         // 如果没有 owner_id，先设置当前用户为 owner
         if subtask.owner_id.is_none() {
@@ -135,6 +163,16 @@ pub async fn sync_push(
             }
             Err(_) => {}
         }
+    }
+
+    // 更新最后同步时间（使用同步开始时间，而不是结束时间）
+    // 这样可以确保同步过程中发生的变更在下次同步时会被包含
+    {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
+        let _ = db::set_last_sync_time(&conn, &sync_start_time);
     }
 
     Ok(SyncResult {

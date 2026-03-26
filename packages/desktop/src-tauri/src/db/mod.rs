@@ -78,9 +78,18 @@ pub fn init_db() -> SqliteResult<Connection> {
             created_at TEXT DEFAULT (datetime('now'))
         );
 
+        CREATE TABLE IF NOT EXISTS app_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
+
         CREATE INDEX IF NOT EXISTS idx_subtasks_parent_id ON subtasks(parent_id);
         CREATE INDEX IF NOT EXISTS idx_subtasks_status ON subtasks(status);
-        CREATE INDEX IF NOT EXISTS idx_sync_queue_synced_at ON sync_queue(synced_at);",
+        CREATE INDEX IF NOT EXISTS idx_sync_queue_synced_at ON sync_queue(synced_at);
+        CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at);
+        CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks(updated_at);
+        CREATE INDEX IF NOT EXISTS idx_subtasks_updated_at ON subtasks(updated_at);",
     )?;
 
     conn.execute("ALTER TABLE projects ADD COLUMN owner_id TEXT", [])
@@ -875,6 +884,116 @@ pub fn get_all_subtasks(conn: &Connection) -> SqliteResult<Vec<Subtask>> {
 
     let subtasks = stmt
         .query_map([], |row| {
+            Ok(Subtask {
+                id: row.get(0)?,
+                parent_id: row.get(1)?,
+                name: row.get(2)?,
+                description: row.get(3)?,
+                status: row.get(4)?,
+                order_index: row.get(5)?,
+                owner_id: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(subtasks)
+}
+
+// ============ Sync State Management ============
+
+pub fn get_last_sync_time(conn: &Connection) -> SqliteResult<Option<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT value FROM app_config WHERE key = 'last_sync_at' LIMIT 1"
+    )?;
+
+    let mut rows = stmt.query([])?;
+    if let Some(row) = rows.next()? {
+        Ok(Some(row.get(0)?))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn set_last_sync_time(conn: &Connection, timestamp: &str) -> SqliteResult<()> {
+    conn.execute(
+        "INSERT OR REPLACE INTO app_config (key, value, updated_at) VALUES ('last_sync_at', ?1, ?2)",
+        params![timestamp, chrono::Utc::now().to_rfc3339()],
+    )?;
+    Ok(())
+}
+
+// ============ Incremental Sync Queries ============
+
+pub fn get_projects_updated_since(conn: &Connection, since: &str) -> SqliteResult<Vec<Project>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, name, description, start_date, end_date, icon, owner_id, created_at, updated_at 
+         FROM projects 
+         WHERE updated_at > ?1
+         ORDER BY updated_at ASC"
+    )?;
+
+    let projects = stmt
+        .query_map(params![since], |row| {
+            Ok(Project {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+                start_date: row.get(3)?,
+                end_date: row.get(4)?,
+                icon: row.get(5)?,
+                owner_id: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(projects)
+}
+
+pub fn get_tasks_updated_since(conn: &Connection, since: &str) -> SqliteResult<Vec<Task>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, project_id, name, description, start_date, end_date, dependencies, is_milestone, color, owner_id, created_at, updated_at 
+         FROM tasks 
+         WHERE updated_at > ?1
+         ORDER BY updated_at ASC"
+    )?;
+
+    let tasks = stmt
+        .query_map(params![since], |row| {
+            let is_milestone_int: i32 = row.get(7)?;
+            Ok(Task {
+                id: row.get(0)?,
+                project_id: row.get(1)?,
+                name: row.get(2)?,
+                description: row.get(3)?,
+                start_date: row.get(4)?,
+                end_date: row.get(5)?,
+                dependencies: row.get(6)?,
+                is_milestone: is_milestone_int != 0,
+                color: row.get(8)?,
+                owner_id: row.get(9)?,
+                created_at: row.get(10)?,
+                updated_at: row.get(11)?,
+            })
+        })?
+        .collect::<SqliteResult<Vec<_>>>()?;
+
+    Ok(tasks)
+}
+
+pub fn get_subtasks_updated_since(conn: &Connection, since: &str) -> SqliteResult<Vec<Subtask>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, parent_id, name, description, status, order_index, owner_id, created_at, updated_at 
+         FROM subtasks 
+         WHERE updated_at > ?1
+         ORDER BY updated_at ASC"
+    )?;
+
+    let subtasks = stmt
+        .query_map(params![since], |row| {
             Ok(Subtask {
                 id: row.get(0)?,
                 parent_id: row.get(1)?,

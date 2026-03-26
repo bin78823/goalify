@@ -171,6 +171,19 @@
     "light": "淺色",
     "dark": "深色"
   },
+  "sync": {
+    "syncing": "同步中",
+    "synced": "已同步",
+    "offline": "離線",
+    "error": "同步失敗",
+    "lastSync": "最後同步: {{time}}",
+    "clickToSync": "點擊立即同步",
+    "neverSynced": "從未同步",
+    "justNow": "剛剛",
+    "minutesAgo": "{{count}}分鐘前",
+    "hoursAgo": "{{count}}小時前",
+    "daysAgo": "{{count}}天前"
+  },
   "imageUpload": {
     "upload": "上傳",
     "replace": "替換",

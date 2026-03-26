@@ -579,47 +579,6 @@ const GanttPage: React.FC = () => {
     originalEnd: Date;
   } | null>(null);
 
-  const handleDragStart = (e: React.MouseEvent, task: Task) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setHasDragged(false);
-    isDraggingRef.current = true;
-    if (ganttContentRef.current) {
-      ganttContentRef.current.style.overflow = "hidden";
-    }
-    setDraggingTask({
-      taskId: task.id,
-      startX: e.clientX,
-      originalStart: new Date(task.startDate),
-      originalEnd: new Date(task.endDate),
-    });
-    document.body.style.overflow = "hidden";
-    document.body.style.userSelect = "none";
-  };
-
-  const handleResizeStart = (
-    e: React.MouseEvent,
-    task: Task,
-    edge: "left" | "right",
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setHasDragged(false);
-    isDraggingRef.current = true;
-    if (ganttContentRef.current) {
-      ganttContentRef.current.style.overflow = "hidden";
-    }
-    setResizingTask({
-      taskId: task.id,
-      startX: e.clientX,
-      edge,
-      originalStart: new Date(task.startDate),
-      originalEnd: new Date(task.endDate),
-    });
-    document.body.style.overflow = "hidden";
-    document.body.style.userSelect = "none";
-  };
-
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!projectId) return;
@@ -972,7 +931,7 @@ const GanttPage: React.FC = () => {
           />
 
           <div
-            className="flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-[var(--card)] overflow-x-hidden overflow-y-scroll scrollbar-reserve shadow-sm shrink-0 dark:shadow-none"
+            className="flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-[var(--card)] overflow-x-hidden overflow-y-scroll scrollbar-visible shadow-sm shrink-0 dark:shadow-none"
             ref={headerRef}
           >
             <div
@@ -1016,8 +975,6 @@ const GanttPage: React.FC = () => {
             selectedTaskId={selectedTaskId}
             getPositionAndWidth={getPositionAndWidth}
             onTaskClick={handleTaskClick}
-            onDragStart={handleDragStart}
-            onResizeStart={handleResizeStart}
             hasDragged={hasDragged}
             onDragUpdate={handleDragUpdate}
             onResizeUpdate={handleResizeUpdate}

@@ -171,6 +171,19 @@
     "light": "Hell",
     "dark": "Dunkel"
   },
+  "sync": {
+    "syncing": "Synchronisierung",
+    "synced": "Synchronisiert",
+    "offline": "Offline",
+    "error": "Synchronisierung fehlgeschlagen",
+    "lastSync": "Letzte Synchronisierung: {{time}}",
+    "clickToSync": "Klicken Sie hier, um jetzt zu synchronisieren",
+    "neverSynced": "Nie synchronisiert",
+    "justNow": "Gerade eben",
+    "minutesAgo": "vor {{count}} Min.",
+    "hoursAgo": "vor {{count}} Std.",
+    "daysAgo": "vor {{count}} T."
+  },
   "imageUpload": {
     "upload": "Hochladen",
     "replace": "Ersetzen",

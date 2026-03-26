@@ -171,6 +171,19 @@
     "light": "ライト",
     "dark": "ダーク"
   },
+  "sync": {
+    "syncing": "同期中",
+    "synced": "同期済み",
+    "offline": "オフライン",
+    "error": "同期失敗",
+    "lastSync": "最終同期: {{time}}",
+    "clickToSync": "クリックして今すぐ同期",
+    "neverSynced": "同期したことがありません",
+    "justNow": "たった今",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前",
+    "daysAgo": "{{count}}日前"
+  },
   "imageUpload": {
     "upload": "アップロード",
     "replace": "置換",
