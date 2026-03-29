@@ -51,4 +51,20 @@ impl AppSupabaseState {
             .as_ref()
             .and_then(|c| c.get_session().map(|s| s.user))
     }
+
+    pub fn update_user_membership(
+        &self,
+        is_member: bool,
+        membership_started_at: Option<String>,
+        membership_expires_at: Option<String>,
+    ) {
+        if let Some(ref mut client) = *self.client.lock().unwrap() {
+            if let Some(mut session) = client.get_session() {
+                session.user.is_member = is_member;
+                session.user.membership_started_at = membership_started_at;
+                session.user.membership_expires_at = membership_expires_at;
+                client.set_session(session);
+            }
+        }
+    }
 }

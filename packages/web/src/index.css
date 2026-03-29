@@ -199,11 +199,10 @@ body {
 /* Show scrollbar normally */
 .scrollbar-visible {
   scrollbar-gutter: stable;
-  /* scrollbar-color: var(--scrollbar-thumb, #c1c1c1) transparent; */
 }
 .scrollbar-visible::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 8px !important;
+  height: 8px !important;
 }
 .scrollbar-visible::-webkit-scrollbar-track {
   background: transparent;
@@ -217,6 +216,28 @@ body {
 }
 .scrollbar-visible::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+.dark .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Scrollbar gutter placeholder for Gantt header alignment */
+.pr-scrollbar-gutter {
+  padding-right: 0;
+  transition: padding-right 0.15s ease;
+}
+.pr-scrollbar-gutter.has-vertical-scrollbar {
+  padding-right: 8px;
+}
+
+@media (pointer: fine) {
+  .pr-scrollbar-gutter.has-vertical-scrollbar {
+    padding-right: 10px;
+  }
 }
 
 /* Glassmorphism Classes */

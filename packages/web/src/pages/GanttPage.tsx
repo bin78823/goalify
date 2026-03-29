@@ -13,6 +13,7 @@ import { exportGanttToExcel } from "../utils/excelExport";
 import CreateTaskDialog from "../components/CreateTaskDialog";
 import { useDateFormatter } from "../hooks/useDateFormatter";
 import { useSubtaskStore } from "../stores/SubtaskStore";
+import { useMembershipStore } from "../stores/MembershipStore";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -30,6 +31,7 @@ const GanttPage: React.FC = () => {
   const { projects, addTask, updateTask, deleteTask, reorderTasks } =
     useGanttStore();
   const { countsByParent, loadCountsByParent } = useSubtaskStore();
+  const { isMember } = useMembershipStore();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [leftPanelWidth, setLeftPanelWidth] = useState(320);
@@ -40,6 +42,7 @@ const GanttPage: React.FC = () => {
   const [dateRangeVersion, setDateRangeVersion] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [hasVerticalScrollbar, setHasVerticalScrollbar] = useState(false);
   const exportContainerRef = useRef<HTMLDivElement>(null);
 
   const headerRef = useRef<HTMLDivElement>(null);
@@ -62,6 +65,29 @@ const GanttPage: React.FC = () => {
       loadCountsByParent(taskIds);
     }
   }, [project?.tasks, loadCountsByParent]);
+
+  // 检测 GanttChart 是否有垂直滚动条，并同步到 header
+  useEffect(() => {
+    const ganttEl = ganttContentRef.current;
+    if (!ganttEl) return;
+
+    const checkScrollbar = () => {
+      const hasScroll = ganttEl.scrollHeight > ganttEl.clientHeight;
+      setHasVerticalScrollbar(hasScroll);
+    };
+
+    checkScrollbar();
+
+    const observer = new ResizeObserver(checkScrollbar);
+    observer.observe(ganttEl);
+
+    ganttEl.addEventListener("scroll", checkScrollbar);
+
+    return () => {
+      observer.disconnect();
+      ganttEl.removeEventListener("scroll", checkScrollbar);
+    };
+  }, [project?.tasks]);
 
   const selectedTask = useMemo(
     () => project?.tasks.find((t) => t.id === selectedTaskId) || null,
@@ -931,7 +957,7 @@ const GanttPage: React.FC = () => {
           />
 
           <div
-            className="flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-[var(--card)] overflow-x-hidden overflow-y-scroll scrollbar-visible shadow-sm shrink-0 dark:shadow-none"
+            className={`flex-1 min-w-0 h-14 border-b border-[var(--border)] bg-[var(--card)] overflow-x-hidden overflow-y-auto scrollbar-visible shadow-sm shrink-0 dark:shadow-none pr-scrollbar-gutter ${hasVerticalScrollbar ? "has-vertical-scrollbar" : ""}`}
             ref={headerRef}
           >
             <div
@@ -1009,6 +1035,7 @@ const GanttPage: React.FC = () => {
             dateRange={exportDateRange}
             getPositionAndWidth={getExportPositionAndWidth}
             countsByParent={countsByParent}
+            isMember={isMember}
             onReady={handleExportReady}
           />
         )}

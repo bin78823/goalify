@@ -217,6 +217,43 @@
     "creatingAccount": "创建中...",
     "passwordMismatch": "密码不匹配",
     "passwordHint": "密码长度至少为 6 个字符",
-    "signUpSuccess": "账户创建成功！正在跳转..."
+    "signUpSuccessWithEmail": "账户创建成功！请查收邮件获取验证码",
+    "signUpSuccess": "账户创建成功！正在跳转...",
+    "verifyEmail": "验证邮箱",
+    "verifyEmailDescription": "请输入发送到您邮箱的验证码",
+    "verificationCode": "验证码",
+    "verificationCodePlaceholder": "粘贴邮件中的验证码",
+    "noCode": "没有收到验证码？",
+    "resendCode": "重新注册",
+    "verifyFailed": "验证失败",
+    "verifySuccess": "验证成功！正在跳转...",
+    "verifying": "验证中...",
+    "verify": "验证"
+  },
+  "membership": {
+    "upgrade": "升级到 Pro",
+    "title": "升级到 Goalify Pro",
+    "description": "解锁无限项目，创建更多可能",
+    "features": {
+      "unlimitedProjects": "无限项目数量",
+      "prioritySupport": "优先客户支持",
+      "earlyAccess": "新功能抢先体验"
+    },
+    "price": "$12/年",
+    "limitReached": "免费项目额度已用完",
+    "limitMessage": "升级到 Pro 解锁无限项目",
+    "checkoutButton": "立即升级",
+    "perYear": "年",
+    "perProject": "约 $1/月",
+    "processingHint": "正在验证支付信息，请稍候",
+    "verifyFailed": "验证支付状态",
+    "goNow": "立即前往",
+    "processing": "正在处理您的会员...",
+    "success": "会员升级成功！",
+    "redirecting": "正在跳转到项目页面...",
+    "errors": {
+      "freeLimitReached": "免费项目数量已达上限，请升级到 Pro 创建更多项目",
+      "loginRequired": "请先登录后再升级"
+    }
   }
 }

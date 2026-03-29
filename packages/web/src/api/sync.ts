@@ -11,6 +11,9 @@ export interface SyncResult {
   pulled_projects: number;
   pulled_tasks: number;
   pulled_subtasks: number;
+  deleted_tasks: number;
+  deleted_subtasks: number;
+  deleted_projects: number;
 }
 
 export const syncApi = {
@@ -35,6 +38,9 @@ export const syncApi = {
         pulled_projects: 0,
         pulled_tasks: 0,
         pulled_subtasks: 0,
+        deleted_tasks: 0,
+        deleted_subtasks: 0,
+        deleted_projects: 0,
       });
     return invoke<SyncResult>("sync_all");
   },

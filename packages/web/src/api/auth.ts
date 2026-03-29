@@ -13,6 +13,10 @@ export interface SignInRequest {
   password: string;
 }
 
+export interface VerifyEmailRequest {
+  token_hash: string;
+}
+
 export const authApi = {
   signUp: (request: SignUpRequest): Promise<AuthResult> => {
     if (!isTauri) return Promise.reject("Not running in Tauri environment");
@@ -42,5 +46,10 @@ export const authApi = {
   isAuthenticated: (): Promise<boolean> => {
     if (!isTauri) return Promise.resolve(false);
     return invoke<boolean>("is_authenticated");
+  },
+
+  verifyEmail: (request: VerifyEmailRequest): Promise<AuthResult> => {
+    if (!isTauri) return Promise.reject("Not running in Tauri environment");
+    return invoke<AuthResult>("verify_email", { request });
   },
 };

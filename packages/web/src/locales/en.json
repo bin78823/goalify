@@ -217,6 +217,43 @@
     "creatingAccount": "Creating account...",
     "passwordMismatch": "Passwords do not match",
     "passwordHint": "Password must be at least 6 characters",
-    "signUpSuccess": "Account created successfully! Redirecting..."
+    "signUpSuccessWithEmail": "Account created! Check your email for a verification code",
+    "signUpSuccess": "Account created successfully! Redirecting...",
+    "verifyEmail": "Verify Email",
+    "verifyEmailDescription": "Enter the verification code sent to your email",
+    "verificationCode": "Verification Code",
+    "verificationCodePlaceholder": "Paste the code from your email",
+    "noCode": "Didn't receive the code?",
+    "resendCode": "Register again",
+    "verifyFailed": "Verification failed",
+    "verifySuccess": "Verification successful! Redirecting...",
+    "verifying": "Verifying...",
+    "verify": "Verify"
+  },
+  "membership": {
+    "upgrade": "Upgrade to Pro",
+    "title": "Upgrade to Goalify Pro",
+    "description": "Unlock unlimited projects and create more",
+    "features": {
+      "unlimitedProjects": "Unlimited projects",
+      "prioritySupport": "Priority support",
+      "earlyAccess": "Early access to new features"
+    },
+    "price": "$12/year",
+    "limitReached": "Free project limit reached",
+    "limitMessage": "Upgrade to Pro for unlimited projects",
+    "checkoutButton": "Upgrade Now",
+    "perYear": "year",
+    "perProject": "About $1/month",
+    "processingHint": "Verifying payment information, please wait",
+    "verifyFailed": "Verify payment status",
+    "goNow": "Go now",
+    "processing": "Processing your membership...",
+    "success": "Membership upgraded successfully!",
+    "redirecting": "Redirecting to projects...",
+    "errors": {
+      "freeLimitReached": "Free project limit reached. Please upgrade to Pro to create more projects.",
+      "loginRequired": "Please sign in first to upgrade"
+    }
   }
 }

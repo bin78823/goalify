@@ -21,7 +21,27 @@ pub fn create_project(
         .lock()
         .map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
 
-    let owner_id = supabase_state.get_user().map(|u| u.id);
+    let user = supabase_state.get_user();
+    let owner_id = user.as_ref().map(|u| u.id.clone());
+
+    if let Some(ref user_id) = owner_id {
+        let is_member = user.as_ref().map(|u| u.is_member).unwrap_or(false);
+
+        if !is_member {
+            let project_count = db::count_projects_by_owner(&conn, Some(user_id))
+                .map_err(|e| e.to_string())?;
+
+            if project_count >= 1 {
+                return Err("FREE_PROJECT_LIMIT_REACHED".to_string());
+            }
+        }
+    } else {
+        let local_count = db::count_all_projects(&conn)
+            .map_err(|e| e.to_string())?;
+        if local_count >= 1 {
+            return Err("FREE_PROJECT_LIMIT_REACHED".to_string());
+        }
+    }
 
     let project = db::create_project(
         &conn,

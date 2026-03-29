@@ -262,6 +262,24 @@ pub fn delete_project(conn: &Connection, id: &str) -> SqliteResult<bool> {
     Ok(rows_affected > 0)
 }
 
+pub fn update_project_from_sync(
+    conn: &Connection,
+    id: &str,
+    name: &str,
+    description: &str,
+    start_date: &str,
+    end_date: &str,
+    icon: Option<&str>,
+    owner_id: &str,
+    updated_at: &str,
+) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE projects SET name = ?1, description = ?2, start_date = ?3, end_date = ?4, icon = ?5, owner_id = ?6, updated_at = ?7 WHERE id = ?8",
+        params![name, description, start_date, end_date, icon, owner_id, updated_at, id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
 pub fn set_project_owner(
     conn: &Connection,
     project_id: &str,
@@ -500,6 +518,28 @@ pub fn delete_task(conn: &Connection, id: &str) -> SqliteResult<bool> {
     Ok(rows_affected > 0)
 }
 
+pub fn update_task_from_sync(
+    conn: &Connection,
+    id: &str,
+    project_id: &str,
+    name: &str,
+    description: &str,
+    start_date: &str,
+    end_date: &str,
+    dependencies: &str,
+    is_milestone: bool,
+    color: Option<&str>,
+    owner_id: &str,
+    updated_at: &str,
+) -> SqliteResult<bool> {
+    let is_milestone_int = if is_milestone { 1 } else { 0 };
+    let rows_affected = conn.execute(
+        "UPDATE tasks SET project_id = ?1, name = ?2, description = ?3, start_date = ?4, end_date = ?5, dependencies = ?6, is_milestone = ?7, color = ?8, owner_id = ?9, updated_at = ?10 WHERE id = ?11",
+        params![project_id, name, description, start_date, end_date, dependencies, is_milestone_int, color, owner_id, updated_at, id],
+    )?;
+    Ok(rows_affected > 0)
+}
+
 // ============ Subtask CRUD ============
 
 pub fn create_subtask(
@@ -621,6 +661,36 @@ pub fn get_subtasks_by_parent(conn: &Connection, parent_id: &str) -> SqliteResul
     Ok(subtasks)
 }
 
+// ============ Project Count for Membership Limit ============
+
+pub fn count_projects_by_owner(
+    conn: &Connection,
+    owner_id: Option<&str>,
+) -> SqliteResult<i32> {
+    let count: i32 = match owner_id {
+        Some(id) => conn.query_row(
+            "SELECT COUNT(*) FROM projects WHERE owner_id = ?1",
+            params![id],
+            |row| row.get(0),
+        )?,
+        None => conn.query_row(
+            "SELECT COUNT(*) FROM projects WHERE owner_id IS NULL",
+            [],
+            |row| row.get(0),
+        )?,
+    };
+    Ok(count)
+}
+
+pub fn count_all_projects(conn: &Connection) -> SqliteResult<i32> {
+    let count: i32 = conn.query_row(
+        "SELECT COUNT(*) FROM projects",
+        [],
+        |row| row.get(0),
+    )?;
+    Ok(count)
+}
+
 pub fn update_subtask(
     conn: &Connection,
     request: &UpdateSubtaskRequest,
@@ -682,6 +752,24 @@ pub fn get_subtask_by_id(conn: &Connection, id: &str) -> SqliteResult<Option<Sub
 
 pub fn delete_subtask(conn: &Connection, id: &str) -> SqliteResult<bool> {
     let rows_affected = conn.execute("DELETE FROM subtasks WHERE id = ?1", params![id])?;
+    Ok(rows_affected > 0)
+}
+
+pub fn update_subtask_from_sync(
+    conn: &Connection,
+    id: &str,
+    parent_id: &str,
+    name: &str,
+    description: &str,
+    status: &str,
+    order_index: i32,
+    owner_id: &str,
+    updated_at: &str,
+) -> SqliteResult<bool> {
+    let rows_affected = conn.execute(
+        "UPDATE subtasks SET parent_id = ?1, name = ?2, description = ?3, status = ?4, order_index = ?5, owner_id = ?6, updated_at = ?7 WHERE id = ?8",
+        params![parent_id, name, description, status, order_index, owner_id, updated_at, id],
+    )?;
     Ok(rows_affected > 0)
 }
 

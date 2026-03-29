@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@goalify/ui";
 import { Input } from "@goalify/ui";
@@ -11,19 +11,38 @@ import {
   CardDescription,
 } from "@goalify/ui";
 import { useAuthStore } from "../stores/AuthStore";
-import { ArrowLeft, Mail, Lock, Loader2, Sparkles, CircleAlert } from "lucide-react";
+import { authApi } from "../api/auth";
+import {
+  ArrowLeft,
+  Loader2,
+  CheckCircle,
+  KeyRound,
+  CircleAlert,
+  Sparkles,
+} from "lucide-react";
 import { DraggableArea } from "../components/DraggableArea";
 
-const LoginPage: React.FC = () => {
+const VerifyEmailPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signIn, isLoading, error, clearError } = useAuthStore();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const location = useLocation();
+  const { clearError } = useAuthStore();
+  const [tokenHash, setTokenHash] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const email = (location.state as { email?: string })?.email || "";
 
   useEffect(() => {
     clearError();
   }, [clearError]);
+
+  useEffect(() => {
+    if (!email) {
+      navigate("/register");
+    }
+  }, [email, navigate]);
 
   useEffect(() => {
     const applyTheme = () => {
@@ -69,10 +88,21 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearError();
-    const success = await signIn(email, password);
-    if (success) {
-      navigate("/projects");
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const result = await authApi.verifyEmail({ token_hash: tokenHash });
+      if (result.success) {
+        setSuccess(true);
+        setTimeout(() => navigate("/projects"), 2000);
+      } else {
+        setError(result.message || t("auth.verifyFailed"));
+      }
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,10 +154,10 @@ const LoginPage: React.FC = () => {
         <CardHeader className="space-y-4 pb-6">
           <div className="space-y-2">
             <CardTitle className="text-2xl font-bold text-[var(--foreground)]">
-              {t("auth.signIn")}
+              {t("auth.verifyEmail")}
             </CardTitle>
             <CardDescription className="text-[var(--muted-foreground)]">
-              {t("auth.signInDescription")}
+              {t("auth.verifyEmailDescription")}
             </CardDescription>
           </div>
         </CardHeader>
@@ -140,34 +170,24 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--foreground)] ml-1">
-                {t("auth.email", "Email")}
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-blue)]/20 focus:border-[var(--vibrant-blue)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
-                />
+            {success && (
+              <div className="p-4 text-sm text-[var(--vibrant-emerald)] bg-[var(--vibrant-emerald)]/10 rounded-xl border border-[var(--vibrant-emerald)]/20 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                {t("auth.verifySuccess")}
               </div>
-            </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-[var(--foreground)] ml-1">
-                {t("auth.password")}
+                {t("auth.verificationCode")}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
                 <Input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="text"
+                  placeholder={t("auth.verificationCodePlaceholder")}
+                  value={tokenHash}
+                  onChange={(e) => setTokenHash(e.target.value)}
                   required
                   className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-blue)]/20 focus:border-[var(--vibrant-blue)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 />
@@ -177,15 +197,15 @@ const LoginPage: React.FC = () => {
             <Button
               type="submit"
               className="w-full h-12 bg-gradient-to-r from-[var(--vibrant-blue)] to-[var(--vibrant-violet)] hover:brightness-110 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
-              disabled={isLoading}
+              disabled={isLoading || !tokenHash}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {t("auth.signingIn")}
+                  {t("auth.verifying")}
                 </span>
               ) : (
-                t("auth.signIn")
+                t("auth.verify")
               )}
             </Button>
           </form>
@@ -196,7 +216,7 @@ const LoginPage: React.FC = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-[var(--card)] text-[var(--muted-foreground)]">
-                {t("auth.noAccount")}
+                {t("auth.noCode")}
               </span>
             </div>
           </div>
@@ -206,7 +226,7 @@ const LoginPage: React.FC = () => {
             className="flex items-center justify-center w-full h-12 px-4 border-2 border-[var(--border)] text-[var(--foreground)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:border-[var(--vibrant-blue)]/50 transition-all duration-200 active:scale-[0.98]"
           >
             <Sparkles className="w-4 h-4 mr-2 text-[var(--vibrant-violet)]" />
-            {t("auth.signUp")}
+            {t("auth.resendCode")}
           </Link>
         </CardContent>
       </Card>
@@ -214,4 +234,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default VerifyEmailPage;

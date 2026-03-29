@@ -153,6 +153,7 @@ packages/
   desktop/src-tauri/
     src/
       commands/     # Tauri commands (Rust)
+      creem/        # Creem payment integration
       db/           # SQLite operations
       models/       # Data models
       supabase/     # Supabase client
@@ -167,7 +168,7 @@ packages/
 
 - **URL:** https://bvumnoyrcgazjbcznkkt.supabase.co
 - **ANON_KEY:** Hardcoded in `supabase/mod.rs`
-- Tables: `projects`, `tasks`, `subtasks` (with owner_id column for RLS)
+- Tables: `projects`, `tasks`, `subtasks`, `user_profiles` (with owner_id column for RLS)
 
 ### Auth Commands (Rust)
 
@@ -196,6 +197,62 @@ await syncApi.all();
 
 ---
 
+## Membership & Subscription (Creem)
+
+### Overview
+
+Users can subscribe via Creem to become Pro members. Members can create unlimited projects; non-members are limited to 1 project.
+
+### Database Tables
+
+- `public.user_profiles` - Stores membership status (is_member, membership_started_at, membership_expires_at)
+- Created via Supabase SQL with RLS policies
+
+### Membership Commands (Rust)
+
+- `create_membership_checkout` - Create Creem checkout URL for upgrading
+- `get_membership_status` - Get current user's membership status
+- `refresh_membership_status` - Refresh membership status from Supabase
+
+### Security
+
+- **All project limits enforced in Rust backend** (`create_project` command)
+- Membership status cached in session, refreshed on login and after payment
+- Project count from local SQLite for performance, verified against Supabase for consistency
+- Frontend checks are UX-only; backend is source of truth
+
+### Creem Integration
+
+- **Payment Flow:** User clicks upgrade → Rust creates checkout URL → User pays on Creem → Creem sends webhook → Supabase updates membership
+- **Webhook:** Supabase Edge Function handles `checkout.completed` events
+- **Test Mode:** Uses `test-api.creem.io` with test API keys
+
+### Environment Variables (Desktop)
+
+```env
+CREEM_API_KEY=your_api_key
+CREEM_PRODUCT_ID=your_product_id
+CREEM_TEST_MODE=true
+```
+
+### Frontend Usage
+
+```typescript
+import { membershipApi } from "@/api/membership";
+import { useMembershipStore } from "@/stores/MembershipStore";
+
+// Check membership status
+await membershipApi.getStatus();
+
+// Create checkout (returns URL to redirect to)
+const checkoutUrl = await membershipApi.createCheckout(successUrl);
+
+// Refresh after payment
+await membershipApi.refresh();
+```
+
+---
+
 ## Git Workflow
 
 - Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`, etc.
@@ -210,3 +267,4 @@ await syncApi.all();
 - **Tab system:** Zustand-persisted tab state synced with project lifecycle
 - **UI primitives:** shadcn/ui pattern — Radix UI + CVA + Tailwind + `cn()`
 - **Tauri + Rust:** Commands in `src/commands/`, database in `src/db/`, models in `src/models/`
+- **Membership:** Session-cached status, backend-enforced limits, Creem webhook for payment

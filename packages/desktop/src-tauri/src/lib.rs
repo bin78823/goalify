@@ -1,4 +1,5 @@
 mod commands;
+mod creem;
 mod db;
 mod models;
 mod supabase;
@@ -23,6 +24,7 @@ pub fn run() {
             commands::auth::get_current_user,
             commands::auth::is_authenticated,
             commands::auth::refresh_session,
+            commands::auth::verify_email,
             commands::project::create_project,
             commands::project::get_all_projects,
             commands::project::get_project,
@@ -43,6 +45,9 @@ pub fn run() {
             commands::sync::sync_push,
             commands::sync::sync_pull,
             commands::sync::sync_all,
+            commands::membership::create_membership_checkout,
+            commands::membership::get_membership_status,
+            commands::membership::refresh_membership_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

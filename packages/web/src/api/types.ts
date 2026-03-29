@@ -95,6 +95,9 @@ export interface UpdateSubtaskRequest {
 export interface SupabaseUser {
   id: string;
   email: string;
+  is_member?: boolean;
+  membership_started_at?: string | null;
+  membership_expires_at?: string | null;
 }
 
 export interface AuthResult {

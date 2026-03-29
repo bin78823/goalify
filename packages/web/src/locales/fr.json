@@ -217,6 +217,43 @@
     "creatingAccount": "Création du compte...",
     "passwordMismatch": "Les mots de passe ne correspondent pas",
     "passwordHint": "Le mot de passe doit contenir au moins 6 caractères",
-    "signUpSuccess": "Compte créé avec succès ! Redirection en cours..."
+    "signUpSuccessWithEmail": "Compte créé ! Vérifiez votre email pour le code de vérification",
+    "signUpSuccess": "Compte créé avec succès ! Redirection en cours...",
+    "verifyEmail": "Vérifier l'email",
+    "verifyEmailDescription": "Entrez le code de vérification envoyé à votre email",
+    "verificationCode": "Code de vérification",
+    "verificationCodePlaceholder": "Collez le code de votre email",
+    "noCode": "Vous n'avez pas reçu le code ?",
+    "resendCode": "S'inscrire à nouveau",
+    "verifyFailed": "Échec de la vérification",
+    "verifySuccess": "Vérification réussie ! Redirection en cours...",
+    "verifying": "Vérification...",
+    "verify": "Vérifier"
+  },
+  "membership": {
+    "upgrade": "Passer à Pro",
+    "title": "Passer à Goalify Pro",
+    "description": "Déverrouiller des projets illimités",
+    "features": {
+      "unlimitedProjects": "Projets illimités",
+      "prioritySupport": "Support prioritaire",
+      "earlyAccess": "Accès anticipé aux nouvelles fonctionnalités"
+    },
+    "price": "12$/an",
+    "limitReached": "Limite de projets gratuits atteinte",
+    "limitMessage": "Passez à Pro pour des projets illimités",
+    "checkoutButton": "Passer à Pro maintenant",
+    "perYear": "an",
+    "perProject": "Environ $1/mois",
+    "processingHint": "Vérification des informations de paiement, veuillez patienter",
+    "verifyFailed": "Vérifier le statut du paiement",
+    "goNow": "Y aller maintenant",
+    "processing": "Traitement de votre adhésion...",
+    "success": "Adhésion améliorée avec succès !",
+    "redirecting": "Redirection vers les projets...",
+    "errors": {
+      "freeLimitReached": "Limite de projets gratuits atteinte. Veuillez passer à Pro pour créer plus de projets.",
+      "loginRequired": "Veuillez vous connecter d'abord pour passer à Pro"
+    }
   }
 }

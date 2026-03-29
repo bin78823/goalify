@@ -19,6 +19,7 @@ import {
   Loader2,
   CheckCircle,
   Sparkles,
+  CircleAlert,
 } from "lucide-react";
 import { DraggableArea } from "../components/DraggableArea";
 
@@ -30,6 +31,10 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   useEffect(() => {
     const applyTheme = () => {
@@ -84,8 +89,15 @@ const RegisterPage: React.FC = () => {
 
     const success = await signUp(email, password);
     if (success) {
-      setSuccessMessage(t("auth.signUpSuccess", "账户创建成功！正在跳转..."));
-      setTimeout(() => navigate("/projects"), 2000);
+      setSuccessMessage(
+        t(
+          "auth.signUpSuccessWithEmail",
+          "账户创建成功！请查收邮件获取验证码"
+        )
+      );
+      setTimeout(() => {
+        navigate("/verify-email", { state: { email } });
+      }, 1500);
     }
   };
 
@@ -100,32 +112,34 @@ const RegisterPage: React.FC = () => {
         className="absolute top-0 left-0 right-0 z-50"
       />
 
+      {/* Background effects — same as LoginPage */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--vibrant-emerald)]/[0.03]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[var(--vibrant-emerald)]/[0.03] rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--vibrant-blue)]/[0.03]" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[var(--vibrant-blue)]/[0.03] rounded-full blur-[120px] animate-pulse" />
         <div
-          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-[var(--vibrant-cyan)]/[0.03] rounded-full blur-[100px] animate-pulse"
+          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-[var(--vibrant-violet)]/[0.03] rounded-full blur-[100px] animate-pulse"
           style={{ animationDelay: "1s" }}
         />
       </div>
 
-      <div className="absolute top-32 left-10 w-2 h-2 bg-[var(--vibrant-emerald)]/20 rounded-full animate-float" />
+      {/* Floating particles — same as LoginPage */}
+      <div className="absolute top-32 left-10 w-2 h-2 bg-[var(--vibrant-blue)]/20 rounded-full animate-float" />
       <div
-        className="absolute top-48 right-16 w-3 h-3 bg-[var(--vibrant-cyan)]/20 rounded-full animate-float"
+        className="absolute top-48 right-16 w-3 h-3 bg-[var(--vibrant-violet)]/20 rounded-full animate-float"
         style={{ animationDelay: "0.5s" }}
       />
       <div
-        className="absolute top-72 left-1/3 w-1.5 h-1.5 bg-[var(--vibrant-emerald)]/30 rounded-full animate-float"
+        className="absolute top-72 left-1/3 w-1.5 h-1.5 bg-[var(--vibrant-blue)]/30 rounded-full animate-float"
         style={{ animationDelay: "1.5s" }}
       />
       <div
-        className="absolute bottom-40 right-1/4 w-2.5 h-2.5 bg-[var(--vibrant-cyan)]/15 rounded-full animate-float"
+        className="absolute bottom-40 right-1/4 w-2.5 h-2.5 bg-[var(--vibrant-violet)]/15 rounded-full animate-float"
         style={{ animationDelay: "2s" }}
       />
 
       <button
         onClick={handleBack}
-        className="absolute top-16 left-6 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors rounded-lg hover:bg-[var(--accent)] backdrop-blur-sm"
+        className="absolute top-16 left-6 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors rounded-lg hover:bg-[var(--accent)] backdrop-blur-sm cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         {t("common.cancel")}
@@ -145,26 +159,14 @@ const RegisterPage: React.FC = () => {
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-4 text-sm text-red-500 bg-red-500/10 rounded-xl border border-red-500/20 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+              <div className="p-4 text-sm text-[var(--destructive)] bg-[var(--destructive)]/10 rounded-xl border border-[var(--destructive)]/20 flex items-center gap-2">
+                <CircleAlert className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
 
             {successMessage && (
-              <div className="p-4 text-sm text-emerald-500 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-2">
+              <div className="p-4 text-sm text-[var(--vibrant-emerald)] bg-[var(--vibrant-emerald)]/10 rounded-xl border border-[var(--vibrant-emerald)]/20 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 flex-shrink-0" />
                 {successMessage}
               </div>
@@ -182,7 +184,7 @@ const RegisterPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-emerald)]/20 focus:border-[var(--vibrant-emerald)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
+                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-blue)]/20 focus:border-[var(--vibrant-blue)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 />
               </div>
             </div>
@@ -200,7 +202,7 @@ const RegisterPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-emerald)]/20 focus:border-[var(--vibrant-emerald)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
+                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-blue)]/20 focus:border-[var(--vibrant-blue)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 />
               </div>
               <p className="text-xs text-[var(--muted-foreground)] ml-1">
@@ -221,33 +223,21 @@ const RegisterPage: React.FC = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-emerald)]/20 focus:border-[var(--vibrant-emerald)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
+                  className="pl-10 h-12 bg-[var(--accent)] border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--vibrant-blue)]/20 focus:border-[var(--vibrant-blue)] transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 />
               </div>
             </div>
 
             {password && confirmPassword && password !== confirmPassword && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+              <p className="text-sm text-[var(--destructive)] flex items-center gap-1">
+                <CircleAlert className="w-4 h-4 flex-shrink-0" />
                 {t("auth.passwordMismatch", "密码不匹配")}
               </p>
             )}
 
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-[var(--vibrant-emerald)] to-[var(--vibrant-cyan)] hover:opacity-90 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 disabled:opacity-70"
+              className="w-full h-12 bg-gradient-to-r from-[var(--vibrant-blue)] to-[var(--vibrant-violet)] hover:brightness-110 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-[0.98] transition-all duration-200 disabled:opacity-70"
               disabled={
                 isLoading ||
                 (password !== confirmPassword && confirmPassword !== "")
@@ -259,7 +249,10 @@ const RegisterPage: React.FC = () => {
                   {t("auth.creatingAccount")}
                 </span>
               ) : (
-                t("auth.signUp")
+                <span className="flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  {t("auth.signUp")}
+                </span>
               )}
             </Button>
           </form>
@@ -277,9 +270,9 @@ const RegisterPage: React.FC = () => {
 
           <Link
             to="/login"
-            className="flex items-center justify-center w-full h-12 px-4 border-2 border-[var(--border)] text-[var(--foreground)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:border-[var(--vibrant-emerald)]/50 transition-all duration-300"
+            className="flex items-center justify-center w-full h-12 px-4 border-2 border-[var(--border)] text-[var(--foreground)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:border-[var(--vibrant-blue)]/50 transition-all duration-200 active:scale-[0.98]"
           >
-            <Sparkles className="w-4 h-4 mr-2 text-[var(--vibrant-cyan)]" />
+            <Sparkles className="w-4 h-4 mr-2 text-[var(--vibrant-violet)]" />
             {t("auth.signIn")}
           </Link>
         </CardContent>

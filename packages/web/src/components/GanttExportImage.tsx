@@ -41,6 +41,7 @@ interface GanttExportImageProps {
   dateRange: { start: Date; end: Date };
   getPositionAndWidth: (task: Task) => { left: number; width: number };
   countsByParent?: Record<string, SubtaskCounts>;
+  isMember?: boolean;
   onReady?: () => void;
 }
 
@@ -55,6 +56,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
   dateRange,
   getPositionAndWidth,
   countsByParent = {},
+  isMember = false,
   onReady,
 }) => {
   const { t } = useTranslation();
@@ -102,6 +104,63 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
   const isWeekend = (date: Date) => {
     const day = date.getDay();
     return day === 0 || day === 6;
+  };
+
+  const renderWatermark = () => {
+    if (isMember) return null;
+
+    const watermarkText = "goalify";
+    const fontSize = 24;
+    const spacingX = 200;
+    const spacingY = 150;
+    const opacity = 0.12;
+
+    const items: React.ReactNode[] = [];
+    const cols = Math.ceil(totalWidth / spacingX) + 2;
+    const rows = Math.ceil((tasks.length * rowHeight + headerHeight + titleHeight) / spacingY) + 2;
+
+    for (let row = -1; row < rows; row++) {
+      for (let col = -1; col < cols; col++) {
+        const offsetX = row % 2 === 0 ? 0 : spacingX / 2;
+        items.push(
+          <div
+            key={`${row}-${col}`}
+            style={{
+              position: "absolute",
+              left: col * spacingX + offsetX,
+              top: row * spacingY,
+              fontSize,
+              fontWeight: 700,
+              fontStyle: "italic",
+              color: `rgba(100, 116, 139, ${opacity})`,
+              userSelect: "none",
+              pointerEvents: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {watermarkText}
+          </div>
+        );
+      }
+    }
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: titleHeight,
+          left: 0,
+          width: totalWidth,
+          height: headerHeight + tasks.length * rowHeight,
+          overflow: "hidden",
+          transform: "rotate(-25deg)",
+          transformOrigin: "top left",
+          zIndex: 1000,
+        }}
+      >
+        {items}
+      </div>
+    );
   };
 
   const totalWidth = days.length * dayWidth;
@@ -645,6 +704,7 @@ const GanttExportImage: React.FC<GanttExportImageProps> = ({
               {renderGridLines()}
               {renderTaskBars()}
               {renderTodayLine()}
+              {renderWatermark()}
             </div>
           </div>
         </div>

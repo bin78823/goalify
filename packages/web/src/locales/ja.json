@@ -217,6 +217,43 @@
     "creatingAccount": "作成中...",
     "passwordMismatch": "パスワードが一致しません",
     "passwordHint": "パスワードは6文字以上必要です",
-    "signUpSuccess": "アカウントが作成されました！リダイレクト中..."
+    "signUpSuccessWithEmail": "アカウント作成成功！メールを確認して認証コードを取得してください",
+    "signUpSuccess": "アカウントが作成されました！リダイレクト中...",
+    "verifyEmail": "メール認証",
+    "verifyEmailDescription": "メールに送信された認証コードを入力してください",
+    "verificationCode": "認証コード",
+    "verificationCodePlaceholder": "メールの認証コードを貼り付け",
+    "noCode": "コードが届きませんか？",
+    "resendCode": "再度登録",
+    "verifyFailed": "認証に失敗しました",
+    "verifySuccess": "認証成功！リダイレクト中...",
+    "verifying": "認証中...",
+    "verify": "認証"
+  },
+  "membership": {
+    "upgrade": "Proにアップグレード",
+    "title": "Goalify Proにアップグレード",
+    "description": "無制限のプロジェクトで可能性を開く",
+    "features": {
+      "unlimitedProjects": "無制限のプロジェクト",
+      "prioritySupport": "優先サポート",
+      "earlyAccess": "新機能の早期アクセス"
+    },
+    "price": "$12/年",
+    "limitReached": "無料プロジェクトの上限に達しました",
+    "limitMessage": "Proにアップグレードして無制限のプロジェクトを",
+    "checkoutButton": "今すぐアップグレード",
+    "perYear": "年",
+    "perProject": "月額約 $1",
+    "processingHint": "お支払い情報を確認中です。しばらくお待ちください",
+    "verifyFailed": "お支払い状況の確認",
+    "goNow": "今すぐ移動",
+    "processing": "メンバーシップを処理中...",
+    "success": "メンバーシップのアップグレードに成功しました！",
+    "redirecting": "プロジェクトページにリダイレクト中...",
+    "errors": {
+      "freeLimitReached": "無料プロジェクトの上限に達しました。詳細なプロジェクトを作成するにはProにアップグレードしてください。",
+      "loginRequired": "アップグレードする前にサインインしてください"
+    }
   }
 }

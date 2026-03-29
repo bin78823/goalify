@@ -13,6 +13,9 @@ pub struct SyncResult {
     pub pulled_projects: u32,
     pub pulled_tasks: u32,
     pub pulled_subtasks: u32,
+    pub deleted_tasks: u32,
+    pub deleted_subtasks: u32,
+    pub deleted_projects: u32,
 }
 
 #[tauri::command]
@@ -68,6 +71,61 @@ pub async fn sync_push(
     let mut pushed_projects = 0u32;
     let mut pushed_tasks = 0u32;
     let mut pushed_subtasks = 0u32;
+    let mut deleted_projects = 0u32;
+    let mut deleted_tasks = 0u32;
+    let mut deleted_subtasks = 0u32;
+
+    // 处理 sync_queue 中的删除操作
+    let pending_sync_items = {
+        let conn = state
+            .db
+            .lock()
+            .map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
+        db::get_pending_sync_items(&conn).map_err(|e| e.to_string())?
+    };
+
+    for item in pending_sync_items {
+        if item.operation == "DELETE" {
+            let success = match item.table_name.as_str() {
+                "tasks" => {
+                    match client.delete_task(&item.record_id).await {
+                        Ok(_) => {
+                            deleted_tasks += 1;
+                            true
+                        }
+                        Err(_) => false,
+                    }
+                }
+                "subtasks" => {
+                    match client.delete_subtask(&item.record_id).await {
+                        Ok(_) => {
+                            deleted_subtasks += 1;
+                            true
+                        }
+                        Err(_) => false,
+                    }
+                }
+                "projects" => {
+                    match client.delete_project(&item.record_id).await {
+                        Ok(_) => {
+                            deleted_projects += 1;
+                            true
+                        }
+                        Err(_) => false,
+                    }
+                }
+                _ => false,
+            };
+
+            if success {
+                let conn = state
+                    .db
+                    .lock()
+                    .map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
+                let _ = db::mark_synced(&conn, &item.id);
+            }
+        }
+    }
 
     // 同步变更的项目
     for project in projects {
@@ -184,6 +242,9 @@ pub async fn sync_push(
         pulled_projects: 0,
         pulled_tasks: 0,
         pulled_subtasks: 0,
+        deleted_tasks,
+        deleted_subtasks,
+        deleted_projects,
     })
 }
 
@@ -200,6 +261,9 @@ pub async fn sync_pull(
     let mut pulled_projects = 0u32;
     let mut pulled_tasks = 0u32;
     let mut pulled_subtasks = 0u32;
+    let mut updated_projects = 0u32;
+    let mut updated_tasks = 0u32;
+    let mut updated_subtasks = 0u32;
 
     let supabase_projects = client.get_projects(&user_id).await?;
 
@@ -211,19 +275,38 @@ pub async fn sync_pull(
 
         for proj in supabase_projects {
             if let (Some(id), Some(name)) = (proj.get("id").and_then(|v| v.as_str()), proj.get("name").and_then(|v| v.as_str())) {
-                let existing = db::get_project_by_id(&conn, id).ok();
-                if existing.is_none() {
-                    let _ = db::create_project_with_id(
-                        &conn,
-                        id,
-                        name,
-                        proj.get("description").and_then(|v| v.as_str()).unwrap_or(""),
-                        proj.get("start_date").and_then(|v| v.as_str()).unwrap_or(""),
-                        proj.get("end_date").and_then(|v| v.as_str()).unwrap_or(""),
-                        proj.get("icon").and_then(|v| v.as_str()),
-                        Some(&user_id),
-                    );
-                    pulled_projects += 1;
+                let cloud_updated = proj.get("updated_at").and_then(|v| v.as_str()).unwrap_or("");
+                
+                match db::get_project_by_id(&conn, id).ok().flatten() {
+                    None => {
+                        let _ = db::create_project_with_id(
+                            &conn,
+                            id,
+                            name,
+                            proj.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                            proj.get("start_date").and_then(|v| v.as_str()).unwrap_or(""),
+                            proj.get("end_date").and_then(|v| v.as_str()).unwrap_or(""),
+                            proj.get("icon").and_then(|v| v.as_str()),
+                            Some(&user_id),
+                        );
+                        pulled_projects += 1;
+                    }
+                    Some(local) => {
+                        if cloud_updated > local.updated_at.as_str() {
+                            let _ = db::update_project_from_sync(
+                                &conn,
+                                id,
+                                name,
+                                proj.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                                proj.get("start_date").and_then(|v| v.as_str()).unwrap_or(""),
+                                proj.get("end_date").and_then(|v| v.as_str()).unwrap_or(""),
+                                proj.get("icon").and_then(|v| v.as_str()),
+                                &user_id,
+                                cloud_updated,
+                            );
+                            updated_projects += 1;
+                        }
+                    }
                 }
             }
         }
@@ -243,22 +326,44 @@ pub async fn sync_pull(
                 task.get("project_id").and_then(|v| v.as_str()),
                 task.get("name").and_then(|v| v.as_str()),
             ) {
-                let existing = db::get_task_by_id(&conn, id).ok();
-                if existing.is_none() {
-                    let _ = db::create_task_with_id(
-                        &conn,
-                        id,
-                        project_id,
-                        name,
-                        task.get("description").and_then(|v| v.as_str()).unwrap_or(""),
-                        task.get("start_date").and_then(|v| v.as_str()).unwrap_or(""),
-                        task.get("end_date").and_then(|v| v.as_str()).unwrap_or(""),
-                        task.get("dependencies").and_then(|v| v.as_str()).unwrap_or(""),
-                        task.get("is_milestone").and_then(|v| v.as_bool()).unwrap_or(false),
-                        task.get("color").and_then(|v| v.as_str()),
-                        Some(&user_id),
-                    );
-                    pulled_tasks += 1;
+                let cloud_updated = task.get("updated_at").and_then(|v| v.as_str()).unwrap_or("");
+                
+                match db::get_task_by_id(&conn, id).ok().flatten() {
+                    None => {
+                        let _ = db::create_task_with_id(
+                            &conn,
+                            id,
+                            project_id,
+                            name,
+                            task.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                            task.get("start_date").and_then(|v| v.as_str()).unwrap_or(""),
+                            task.get("end_date").and_then(|v| v.as_str()).unwrap_or(""),
+                            task.get("dependencies").and_then(|v| v.as_str()).unwrap_or(""),
+                            task.get("is_milestone").and_then(|v| v.as_bool()).unwrap_or(false),
+                            task.get("color").and_then(|v| v.as_str()),
+                            Some(&user_id),
+                        );
+                        pulled_tasks += 1;
+                    }
+                    Some(local) => {
+                        if cloud_updated > local.updated_at.as_str() {
+                            let _ = db::update_task_from_sync(
+                                &conn,
+                                id,
+                                project_id,
+                                name,
+                                task.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                                task.get("start_date").and_then(|v| v.as_str()).unwrap_or(""),
+                                task.get("end_date").and_then(|v| v.as_str()).unwrap_or(""),
+                                task.get("dependencies").and_then(|v| v.as_str()).unwrap_or(""),
+                                task.get("is_milestone").and_then(|v| v.as_bool()).unwrap_or(false),
+                                task.get("color").and_then(|v| v.as_str()),
+                                &user_id,
+                                cloud_updated,
+                            );
+                            updated_tasks += 1;
+                        }
+                    }
                 }
             }
         }
@@ -278,19 +383,38 @@ pub async fn sync_pull(
                 subtask.get("parent_id").and_then(|v| v.as_str()),
                 subtask.get("name").and_then(|v| v.as_str()),
             ) {
-                let existing = db::get_subtask_by_id(&conn, id).ok();
-                if existing.is_none() {
-                    let _ = db::create_subtask_with_id(
-                        &conn,
-                        id,
-                        parent_id,
-                        name,
-                        subtask.get("description").and_then(|v| v.as_str()).unwrap_or(""),
-                        subtask.get("status").and_then(|v| v.as_str()).unwrap_or("todo"),
-                        subtask.get("order_index").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
-                        Some(&user_id),
-                    );
-                    pulled_subtasks += 1;
+                let cloud_updated = subtask.get("updated_at").and_then(|v| v.as_str()).unwrap_or("");
+                
+                match db::get_subtask_by_id(&conn, id).ok().flatten() {
+                    None => {
+                        let _ = db::create_subtask_with_id(
+                            &conn,
+                            id,
+                            parent_id,
+                            name,
+                            subtask.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                            subtask.get("status").and_then(|v| v.as_str()).unwrap_or("todo"),
+                            subtask.get("order_index").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                            Some(&user_id),
+                        );
+                        pulled_subtasks += 1;
+                    }
+                    Some(local) => {
+                        if cloud_updated > local.updated_at.as_str() {
+                            let _ = db::update_subtask_from_sync(
+                                &conn,
+                                id,
+                                parent_id,
+                                name,
+                                subtask.get("description").and_then(|v| v.as_str()).unwrap_or(""),
+                                subtask.get("status").and_then(|v| v.as_str()).unwrap_or("todo"),
+                                subtask.get("order_index").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                                &user_id,
+                                cloud_updated,
+                            );
+                            updated_subtasks += 1;
+                        }
+                    }
                 }
             }
         }
@@ -298,13 +422,18 @@ pub async fn sync_pull(
 
     Ok(SyncResult {
         success: true,
-        message: "Sync completed".to_string(),
+        message: format!("Pull completed: {} new, {} updated", 
+            pulled_projects + pulled_tasks + pulled_subtasks,
+            updated_projects + updated_tasks + updated_subtasks),
         pushed_projects: 0,
         pushed_tasks: 0,
         pushed_subtasks: 0,
         pulled_projects,
         pulled_tasks,
         pulled_subtasks,
+        deleted_tasks: 0,
+        deleted_subtasks: 0,
+        deleted_projects: 0,
     })
 }
 
@@ -313,8 +442,9 @@ pub async fn sync_all(
     state: State<'_, AppState>,
     supabase_state: State<'_, AppSupabaseState>,
 ) -> Result<SyncResult, String> {
-    let push_result = sync_push(state.clone(), supabase_state.clone()).await?;
-    let pull_result = sync_pull(state, supabase_state).await?;
+    // 先 Pull 再 Push：先获取云端最新数据，再推送本地修改
+    let pull_result = sync_pull(state.clone(), supabase_state.clone()).await?;
+    let push_result = sync_push(state, supabase_state).await?;
 
     Ok(SyncResult {
         success: true,
@@ -325,5 +455,8 @@ pub async fn sync_all(
         pulled_projects: pull_result.pulled_projects,
         pulled_tasks: pull_result.pulled_tasks,
         pulled_subtasks: pull_result.pulled_subtasks,
+        deleted_tasks: push_result.deleted_tasks,
+        deleted_subtasks: push_result.deleted_subtasks,
+        deleted_projects: push_result.deleted_projects,
     })
 }

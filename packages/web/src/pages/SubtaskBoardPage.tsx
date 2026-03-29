@@ -28,6 +28,7 @@ import {
 } from "@goalify/ui";
 import { useSubtaskStore, SubtaskCounts } from "../stores/SubtaskStore";
 import { useGanttStore } from "../contexts/GanttContext";
+import { useAuthStore } from "../stores/AuthStore";
 import SubtaskCard from "../components/SubtaskCard";
 import ProgressSliderWithMilestones from "../components/ProgressSliderWithMilestones";
 import {
@@ -201,6 +202,7 @@ const SubtaskBoardPage: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { projects, updateTask, deleteTask } = useGanttStore();
+  const syncVersion = useAuthStore((s) => s.syncVersion);
   const {
     subtasks,
     isLoading,
@@ -262,6 +264,12 @@ const SubtaskBoardPage: React.FC = () => {
       loadByParentId(taskId);
     }
   }, [taskId, loadByParentId]);
+
+  useEffect(() => {
+    if (syncVersion > 0 && taskId) {
+      loadByParentId(taskId);
+    }
+  }, [syncVersion, taskId, loadByParentId]);
 
   useEffect(() => {
     if (parentTask) {

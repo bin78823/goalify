@@ -33,6 +33,21 @@ pub struct SupabaseSession {
 pub struct SupabaseUser {
     pub id: String,
     pub email: String,
+    pub is_member: bool,
+    pub membership_started_at: Option<String>,
+    pub membership_expires_at: Option<String>,
+}
+
+impl Default for SupabaseUser {
+    fn default() -> Self {
+        Self {
+            id: String::new(),
+            email: String::new(),
+            is_member: false,
+            membership_started_at: None,
+            membership_expires_at: None,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -42,6 +57,21 @@ pub struct AuthResponse {
     pub expires_in: i64,
     pub expires_at: i64,
     pub user: SupabaseUser,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SupabaseAuthUser {
+    pub id: String,
+    pub email: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SupabaseAuthResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expires_in: i64,
+    pub expires_at: i64,
+    pub user: SupabaseAuthUser,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -88,7 +118,7 @@ impl SupabaseClient {
 
     pub async fn sign_up(&self, email: &str, password: &str) -> Result<Option<AuthResponse>, String> {
         let url = format!("{}/auth/v1/signup", self.url);
-        
+
         let body = serde_json::json!({
             "email": email,
             "password": password,
@@ -107,8 +137,21 @@ impl SupabaseClient {
         if response.status().is_success() {
             let data: serde_json::Value = response.json().await.map_err(|e| e.to_string())?;
             if data.get("access_token").is_some() {
-                let auth_resp: AuthResponse = serde_json::from_value(data).map_err(|e| e.to_string())?;
-                Ok(Some(auth_resp))
+                let auth_resp: SupabaseAuthResponse = serde_json::from_value(data).map_err(|e| e.to_string())?;
+                let user = SupabaseUser {
+                    id: auth_resp.user.id,
+                    email: auth_resp.user.email,
+                    is_member: false,
+                    membership_started_at: None,
+                    membership_expires_at: None,
+                };
+                Ok(Some(AuthResponse {
+                    access_token: auth_resp.access_token,
+                    refresh_token: auth_resp.refresh_token,
+                    expires_in: auth_resp.expires_in,
+                    expires_at: auth_resp.expires_at,
+                    user,
+                }))
             } else {
                 Ok(None)
             }
@@ -120,7 +163,7 @@ impl SupabaseClient {
 
     pub async fn sign_in(&self, email: &str, password: &str) -> Result<AuthResponse, String> {
         let url = format!("{}/auth/v1/token?grant_type=password", self.url);
-        
+
         let body = serde_json::json!({
             "email": email,
             "password": password
@@ -136,8 +179,38 @@ impl SupabaseClient {
             .map_err(|e| e.to_string())?;
 
         if response.status().is_success() {
-            let auth_resp: AuthResponse = response.json().await.map_err(|e| e.to_string())?;
-            Ok(auth_resp)
+            let auth_resp: SupabaseAuthResponse = response.json().await.map_err(|e| e.to_string())?;
+
+            let mut user = SupabaseUser {
+                id: auth_resp.user.id,
+                email: auth_resp.user.email,
+                is_member: false,
+                membership_started_at: None,
+                membership_expires_at: None,
+            };
+
+            if let Ok(Some(profile)) = self.get_user_profile(&user.id).await {
+                user.is_member = profile
+                    .get("is_member")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+                user.membership_started_at = profile
+                    .get("membership_started_at")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                user.membership_expires_at = profile
+                    .get("membership_expires_at")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+            }
+
+            Ok(AuthResponse {
+                access_token: auth_resp.access_token,
+                refresh_token: auth_resp.refresh_token,
+                expires_in: auth_resp.expires_in,
+                expires_at: auth_resp.expires_at,
+                user,
+            })
         } else {
             let error: serde_json::Value = response.json().await.map_err(|e| e.to_string())?;
             Err(error.get("msg").or(error.get("error_description")).unwrap_or(&serde_json::Value::String("Invalid credentials".to_string())).to_string())
@@ -188,6 +261,75 @@ impl SupabaseClient {
         } else {
             self.clear_session();
             Err("Session expired".to_string())
+        }
+    }
+
+    pub async fn verify_email(&self, token_hash: &str) -> Result<AuthResponse, String> {
+        let url = format!("{}/auth/v1/verify", self.url);
+
+        let body = serde_json::json!({
+            "type": "signup",
+            "token_hash": token_hash
+        });
+
+        let response = self.client
+            .post(&url)
+            .header("apikey", &self.anon_key)
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        let status = response.status();
+        let body_text = response.text().await.map_err(|e| e.to_string())?;
+
+        if status.is_success() {
+            let json: serde_json::Value = serde_json::from_str(&body_text)
+                .map_err(|e| format!("Failed to parse response: {} - body: {}", e, body_text))?;
+
+            let access_token = json.get("access_token")
+                .and_then(|v| v.as_str())
+                .ok_or("Missing access_token")?;
+            let refresh_token = json.get("refresh_token")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let expires_in = json.get("expires_in")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(3600);
+            let expires_at = json.get("expires_at")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+
+            let user_id = json.get("user")
+                .and_then(|v| v.get("id"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let email = json.get("user")
+                .and_then(|v| v.get("email"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
+            Ok(AuthResponse {
+                access_token: access_token.to_string(),
+                refresh_token: refresh_token.to_string(),
+                expires_in,
+                expires_at,
+                user: SupabaseUser {
+                    id: user_id.to_string(),
+                    email: email.to_string(),
+                    ..Default::default()
+                },
+            })
+        } else {
+            let json: serde_json::Value = serde_json::from_str(&body_text)
+                .unwrap_or_else(|_| serde_json::json!({}));
+            Err(json.get("msg")
+                .or(json.get("message"))
+                .or(json.get("error_description"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("Invalid verification code")
+                .to_string())
         }
     }
 
@@ -504,22 +646,66 @@ impl SupabaseClient {
 
     pub async fn get_subtasks_by_owner(&self, owner_id: &str) -> Result<Vec<serde_json::Value>, String> {
         let headers = self.auth_headers().ok_or("Not authenticated")?;
-        
+
         let url = format!("{}/rest/v1/subtasks?owner_id=eq.{}&select=*&order=created_at.asc", self.url, owner_id);
-        
+
         let mut request = self.client.get(&url);
         for (key, value) in headers {
             request = request.header(&key, &value);
         }
-        
+
         let response = request.send().await.map_err(|e| e.to_string())?;
-        
+
         if response.status().is_success() {
             let subtasks: Vec<serde_json::Value> = response.json().await.map_err(|e| e.to_string())?;
             Ok(subtasks)
         } else {
             Err("Failed to fetch subtasks".to_string())
         }
+    }
+
+    pub async fn get_user_profile(&self, user_id: &str) -> Result<Option<serde_json::Value>, String> {
+        let headers = self.auth_headers().ok_or("Not authenticated")?;
+
+        let url = format!(
+            "{}/rest/v1/user_profiles?id=eq.{}&select=*",
+            self.url, user_id
+        );
+
+        let mut request = self.client.get(&url);
+        for (key, value) in headers {
+            request = request.header(&key, &value);
+        }
+
+        let response = request.send().await.map_err(|e| e.to_string())?;
+
+        if response.status().is_success() {
+            let profiles: Vec<serde_json::Value> = response.json().await.map_err(|e| e.to_string())?;
+            Ok(profiles.into_iter().next())
+        } else {
+            Err("Failed to fetch user profile".to_string())
+        }
+    }
+
+    pub async fn refresh_membership(&self, user_id: &str) -> Result<SupabaseUser, String> {
+        let profile = self.get_user_profile(user_id).await?;
+
+        Ok(SupabaseUser {
+            id: user_id.to_string(),
+            email: String::new(),
+            is_member: profile
+                .as_ref()
+                .and_then(|p| p.get("is_member").and_then(|v| v.as_bool()))
+                .unwrap_or(false),
+            membership_started_at: profile
+                .as_ref()
+                .and_then(|p| p.get("membership_started_at").and_then(|v| v.as_str()))
+                .map(|s| s.to_string()),
+            membership_expires_at: profile
+                .as_ref()
+                .and_then(|p| p.get("membership_expires_at").and_then(|v| v.as_str()))
+                .map(|s| s.to_string()),
+        })
     }
 }
 

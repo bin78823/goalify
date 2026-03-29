@@ -217,6 +217,43 @@
     "creatingAccount": "創建中...",
     "passwordMismatch": "密碼不匹配",
     "passwordHint": "密碼長度至少為 6 個字符",
-    "signUpSuccess": "賬戶創建成功！正在跳轉..."
+    "signUpSuccessWithEmail": "賬戶創建成功！請查收郵件獲取驗證碼",
+    "signUpSuccess": "賬戶創建成功！正在跳轉...",
+    "verifyEmail": "驗證郵箱",
+    "verifyEmailDescription": "請輸入發送到您郵箱的驗證碼",
+    "verificationCode": "驗證碼",
+    "verificationCodePlaceholder": "貼上郵件中的驗證碼",
+    "noCode": "沒有收到驗證碼？",
+    "resendCode": "重新註冊",
+    "verifyFailed": "驗證失敗",
+    "verifySuccess": "驗證成功！正在跳轉...",
+    "verifying": "驗證中...",
+    "verify": "驗證"
+  },
+  "membership": {
+    "upgrade": "升級到 Pro",
+    "title": "升級到 Goalify Pro",
+    "description": "解鎖無限項目，創建更多可能",
+    "features": {
+      "unlimitedProjects": "無限項目數量",
+      "prioritySupport": "優先客戶支援",
+      "earlyAccess": "新功能搶先體驗"
+    },
+    "price": "$12/年",
+    "limitReached": "免費項目額度已用完",
+    "limitMessage": "升級到 Pro 解鎖無限項目",
+    "checkoutButton": "立即升級",
+    "perYear": "年",
+    "perProject": "約 $1/月",
+    "processingHint": "正在驗證支付資訊，請稍候",
+    "verifyFailed": "驗證支付狀態",
+    "goNow": "立即前往",
+    "processing": "正在處理您的會員...",
+    "success": "會員升級成功！",
+    "redirecting": "正在跳轉到項目頁面...",
+    "errors": {
+      "freeLimitReached": "免費項目數量已達上限，請升級到 Pro 創建更多項目",
+      "loginRequired": "請先登入後再升級"
+    }
   }
 }

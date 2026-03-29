@@ -1,16 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { FolderKanban, Sparkles } from "lucide-react";
 import { useGanttStore } from "../contexts/GanttContext";
+import { useMembershipStore } from "../stores/MembershipStore";
 import ProjectCard from "../components/ProjectCard";
 import ProjectFormDialog from "../components/ProjectFormDialog";
 import EmptyProjects from "../components/EmptyProjects";
 import GoalifyLogo from "../components/GoalifyLogo";
+import { MembershipBanner } from "../components/MembershipBanner";
+import { UpgradeDialog } from "../components/UpgradeDialog";
 
 const ProjectsPage: React.FC = () => {
   const { t } = useTranslation();
   const { projects, addProject } = useGanttStore();
+  const { isMember, checkMembership } = useMembershipStore();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+
+  useEffect(() => {
+    checkMembership();
+  }, []);
 
   const handleCreateProject = (project: {
     name: string;
@@ -19,6 +28,10 @@ const ProjectsPage: React.FC = () => {
     endDate: Date;
     icon?: string;
   }) => {
+    if (!isMember && projects.length >= 1) {
+      setShowUpgradeDialog(true);
+      return;
+    }
     addProject({
       name: project.name,
       description: project.description,
@@ -28,6 +41,8 @@ const ProjectsPage: React.FC = () => {
     });
     setIsCreateOpen(false);
   };
+
+  const showBanner = !isMember && projects.length >= 1;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -107,6 +122,11 @@ const ProjectsPage: React.FC = () => {
             />
           </div>
 
+          {/* Membership Banner */}
+          {showBanner && (
+            <MembershipBanner onUpgradeClick={() => setShowUpgradeDialog(true)} />
+          )}
+
           {/* Decorative divider */}
           <div className="relative h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent" />
         </div>
@@ -131,6 +151,11 @@ const ProjectsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+      />
     </div>
   );
 };

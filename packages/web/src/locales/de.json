@@ -217,6 +217,43 @@
     "creatingAccount": "Konto wird erstellt...",
     "passwordMismatch": "Passwörter stimmen nicht überein",
     "passwordHint": "Das Passwort muss mindestens 6 Zeichen lang sein",
-    "signUpSuccess": "Konto erfolgreich erstellt! Weiterleitung..."
+    "signUpSuccessWithEmail": "Konto erstellt! Überprüfen Sie Ihre E-Mail für den Bestätigungscode",
+    "signUpSuccess": "Konto erfolgreich erstellt! Weiterleitung...",
+    "verifyEmail": "E-Mail verifizieren",
+    "verifyEmailDescription": "Geben Sie den Bestätigungscode ein, der an Ihre E-Mail gesendet wurde",
+    "verificationCode": "Bestätigungscode",
+    "verificationCodePlaceholder": "Code aus Ihrer E-Mail einfügen",
+    "noCode": "Keinen Code erhalten?",
+    "resendCode": "Erneut registrieren",
+    "verifyFailed": "Verifizierung fehlgeschlagen",
+    "verifySuccess": "Verifizierung erfolgreich! Weiterleitung...",
+    "verifying": "Verifizierung...",
+    "verify": "Verifizieren"
+  },
+  "membership": {
+    "upgrade": "Auf Pro upgraden",
+    "title": "Auf Goalify Pro upgraden",
+    "description": "Entsperren Sie unbegrenzte Projekte",
+    "features": {
+      "unlimitedProjects": "Unbegrenzte Projekte",
+      "prioritySupport": "Prioritätssupport",
+      "earlyAccess": "Frühzeitiger Zugang zu neuen Funktionen"
+    },
+    "price": "$12/Jahr",
+    "limitReached": "Kostenloses Projektlimit erreicht",
+    "limitMessage": "Upgraden Sie auf Pro für unbegrenzte Projekte",
+    "checkoutButton": "Jetzt upgraden",
+    "perYear": "Jahr",
+    "perProject": "Etwa $1/Monat",
+    "processingHint": "Zahlungsinformationen werden überprüft, bitte warten",
+    "verifyFailed": "Zahlungsstatus überprüfen",
+    "goNow": "Jetzt gehen",
+    "processing": "Ihre Mitgliedschaft wird bearbeitet...",
+    "success": "Mitgliedschaft erfolgreich upgegradet!",
+    "redirecting": "Weiterleitung zu Projekten...",
+    "errors": {
+      "freeLimitReached": "Kostenloses Projektlimit erreicht. Bitte upgraden Sie auf Pro, um mehr Projekte zu erstellen.",
+      "loginRequired": "Bitte melden Sie sich zuerst an, um zu upgraden"
+    }
   }
 }
