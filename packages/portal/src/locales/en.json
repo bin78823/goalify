@@ -1,0 +1,96 @@
+{
+  "nav": {
+    "features": "Features",
+    "download": "Download",
+    "about": "About"
+  },
+  "hero": {
+    "badge": "New Release v1.0.0",
+    "title": "Goalify",
+    "subtitle": "Professional Project Management Tool",
+    "description": "Powerful Gantt chart features to help you efficiently manage project progress, tasks, and team collaboration",
+    "cta": {
+      "download": "Download Now",
+      "demo": "View Demo"
+    },
+    "features": {
+      "free": "Free to Use",
+      "crossPlatform": "Cross-Platform Support",
+      "cloudSync": "Cloud Sync"
+    }
+  },
+  "features": {
+    "title": "Powerful Features",
+    "subtitle": "Goalify provides professional project management tools to help you efficiently plan and execute projects",
+    "gantt": {
+      "title": "Gantt Chart View",
+      "description": "Intuitive Gantt chart display of project progress, easily manage task timelines and dependencies"
+    },
+    "projects": {
+      "title": "Multi-Project Management",
+      "description": "Support for managing multiple projects simultaneously, flexible switching, efficient workflow organization"
+    },
+    "subtasks": {
+      "title": "Subtask Tracking",
+      "description": "Break down complex tasks into subtasks, track completion progress, ensure smooth project advancement"
+    },
+    "milestones": {
+      "title": "Milestone Management",
+      "description": "Set key milestones, mark important nodes, control overall project progress"
+    },
+    "timeline": {
+      "title": "Timeline Visualization",
+      "description": "Clear display of task timelines, quickly identify delay risks and resource conflicts"
+    },
+    "collaboration": {
+      "title": "Team Collaboration",
+      "description": "Cloud data synchronization, support multi-device access, team collaboration more convenient"
+    }
+  },
+  "download": {
+    "title": "Download Client",
+    "subtitle": "Choose the version suitable for your operating system to start using Goalify",
+    "version": "Version",
+    "security": "All versions have passed security testing, please download with confidence",
+    "platforms": {
+      "macos": {
+        "name": "macOS",
+        "description": "For macOS 10.15 (Catalina) and above"
+      },
+      "windows": {
+        "name": "Windows",
+        "description": "For Windows 10/11 (64-bit)"
+      },
+      "linux": {
+        "name": "Linux",
+        "description": "For Ubuntu 20.04+ / Debian 11+ / Fedora 35+"
+      }
+    }
+  },
+  "footer": {
+    "description": "Goalify is a professional project management tool that provides powerful Gantt chart features to help teams efficiently manage projects and tasks.",
+    "product": "Product",
+    "support": "Support",
+    "links": {
+      "features": "Features",
+      "download": "Download Client",
+      "changelog": "Changelog",
+      "pricing": "Pricing",
+      "help": "Help Center",
+      "docs": "Documentation",
+      "contact": "Contact Us",
+      "privacy": "Privacy Policy"
+    },
+    "copyright": "All rights reserved."
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "en": "English",
+    "zhCN": "简体中文",
+    "zhTW": "繁體中文"
+  }
+}

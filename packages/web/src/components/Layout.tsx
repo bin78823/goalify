@@ -190,8 +190,6 @@ const AuthButton: React.FC = () => {
 };
 
 const Layout: React.FC = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAuthStore();
   const { startPeriodicSync, stopPeriodicSync } = useSyncStore();
   const [theme, setTheme] = useState<"light" | "dark">(() => {

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @goalify/web dev",
+    "dev:portal": "pnpm --filter @goalify/portal dev",
     "dev:desktop": "concurrently -k \"pnpm dev\" \"pnpm --filter @goalify/desktop tauri dev\"",
     "dev:web": "pnpm --filter @goalify/web dev",
     "dev:tauri": "pnpm --filter @goalify/desktop tauri dev",
@@ -13,6 +14,7 @@
     "dev:all": "concurrently -k \"pnpm dev\" \"pnpm dev:mobile\"",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter @goalify/web build",
+    "build:portal": "pnpm --filter @goalify/portal build",
     "build:desktop": "pnpm --filter @goalify/desktop tauri build",
     "build:ios": "cd packages/mobile && npx expo run:ios --configuration Release",
     "build:android": "cd packages/mobile && npx expo run:android --variant release",

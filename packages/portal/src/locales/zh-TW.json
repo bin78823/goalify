@@ -1,0 +1,96 @@
+{
+  "nav": {
+    "features": "功能特性",
+    "download": "下載",
+    "about": "關於"
+  },
+  "hero": {
+    "badge": "全新發布 v1.0.0",
+    "title": "Goalify",
+    "subtitle": "專業專案管理工具",
+    "description": "強大的甘特圖功能，幫助您高效管理專案進度、任務和團隊協作",
+    "cta": {
+      "download": "立即下載",
+      "demo": "查看演示"
+    },
+    "features": {
+      "free": "免費使用",
+      "crossPlatform": "跨平台支援",
+      "cloudSync": "雲端同步"
+    }
+  },
+  "features": {
+    "title": "強大功能",
+    "subtitle": "Goalify 提供專業的專案管理工具，幫助您高效規劃和執行專案",
+    "gantt": {
+      "title": "甘特圖視圖",
+      "description": "直觀的甘特圖展示專案進度，輕鬆管理任務時間線和依賴關係"
+    },
+    "projects": {
+      "title": "多專案管理",
+      "description": "支援同時管理多個專案，靈活切換，高效組織工作流程"
+    },
+    "subtasks": {
+      "title": "子任務追蹤",
+      "description": "將複雜任務拆分為子任務，追蹤完成進度，確保專案順利推進"
+    },
+    "milestones": {
+      "title": "里程碑管理",
+      "description": "設定關鍵里程碑，標記重要節點，把控專案整體進度"
+    },
+    "timeline": {
+      "title": "時間線視覺化",
+      "description": "清晰展示任務時間線，快速識別延期風險和資源衝突"
+    },
+    "collaboration": {
+      "title": "團隊協作",
+      "description": "雲端同步資料，支援多裝置存取，團隊協作更便捷"
+    }
+  },
+  "download": {
+    "title": "下載用戶端",
+    "subtitle": "選擇適合您作業系統的版本，開始使用 Goalify 管理您的專案",
+    "version": "版本",
+    "security": "所有版本均經過安全檢測，請放心下載使用",
+    "platforms": {
+      "macos": {
+        "name": "macOS",
+        "description": "適用於 macOS 10.15 (Catalina) 及以上版本"
+      },
+      "windows": {
+        "name": "Windows",
+        "description": "適用於 Windows 10/11 (64位元)"
+      },
+      "linux": {
+        "name": "Linux",
+        "description": "適用於 Ubuntu 20.04+ / Debian 11+ / Fedora 35+"
+      }
+    }
+  },
+  "footer": {
+    "description": "Goalify 是一款專業的專案管理工具，提供強大的甘特圖功能，幫助團隊高效管理專案和任務。",
+    "product": "產品",
+    "support": "支援",
+    "links": {
+      "features": "功能特性",
+      "download": "下載用戶端",
+      "changelog": "更新日誌",
+      "pricing": "價格方案",
+      "help": "幫助中心",
+      "docs": "使用文件",
+      "contact": "聯絡我們",
+      "privacy": "隱私權政策"
+    },
+    "copyright": "保留所有權利。"
+  },
+  "theme": {
+    "light": "淺色",
+    "dark": "深色",
+    "system": "跟隨系統"
+  },
+  "language": {
+    "en": "English",
+    "zhCN": "简体中文",
+    "zhTW": "繁體中文"
+  }
+}
